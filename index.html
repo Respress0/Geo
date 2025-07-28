@@ -1,60 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Общая точка на карте</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://api-maps.yandex.ru/2.1/?apikey=ВАШ_API_КЛЮЧ&lang=ru_RU"></script>
-    <style>
-        #map { width: 100%; height: 100vh; }
-        .shared-point { background-color: red; border-radius: 50%; width: 20px; height: 20px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EventApp - Telegram Mini App</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div id="map"></div>
+  <div class="app-container">
+    <header class="app-header">
+      <h1>EventApp</h1>
+      <div class="user-avatar" id="userAvatar">U</div>
+    </header>
+    
+    <main class="app-main" id="appContent">
+      <!-- Контент будет подгружаться динамически -->
+    </main>
+    
+    <nav class="tab-bar">
+      <button class="tab-btn active" data-tab="feed">
+        <i class="fas fa-home"></i>
+        <span>Лента</span>
+      </button>
+      <button class="tab-btn" data-tab="calendar">
+        <i class="fas fa-calendar"></i>
+        <span>Календарь</span>
+      </button>
+      <button class="tab-btn" data-tab="create">
+        <i class="fas fa-plus-circle"></i>
+        <span>Создать</span>
+      </button>
+      <button class="tab-btn" data-tab="my-events">
+        <i class="fas fa-star"></i>
+        <span>Мои</span>
+      </button>
+      <button class="tab-btn" data-tab="account">
+        <i class="fas fa-user"></i>
+        <span>Аккаунт</span>
+      </button>
+    </nav>
+  </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+  <!-- Модальные окна -->
+  <div id="eventModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <h2 id="modalTitle">Детали события</h2>
+      <div id="modalBody"></div>
+    </div>
+  </div>
 
-        let map, placemark;
-        let socket = new WebSocket('ws://ваш-сервер.com:8080'); // Замените на ваш WebSocket
-
-        // Инициализация карты
-        ymaps.ready(() => {
-            map = new ymaps.Map("map", {
-                center: [55.76, 37.64],
-                zoom: 10
-            });
-
-            // Клик по карте → отправка точки на сервер
-            map.events.add('click', (e) => {
-                const coords = e.get('coords');
-                socket.send(JSON.stringify({ lat: coords[0], lng: coords[1] }));
-            });
-        });
-
-        // Получение новых точек от сервера
-        socket.onmessage = (event) => {
-            const point = JSON.parse(event.data);
-            
-            // Обновляем метку на карте
-            if (placemark) {
-                placemark.geometry.setCoordinates([point.lat, point.lng]);
-            } else {
-                placemark = new ymaps.Placemark([point.lat, point.lng], {}, {
-                    preset: 'islands#redDotIcon'
-                });
-                map.geoObjects.add(placemark);
-            }
-        };
-
-        // Закрытие соединения при выходе
-        tg.onEvent('viewportChanged', (event) => {
-            if (!event.isExpanded) {
-                socket.close();
-            }
-        });
-    </script>
+  <script src="script.js"></script>
 </body>
 </html>
