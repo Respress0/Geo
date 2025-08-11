@@ -49,6 +49,7 @@
             gap: 20px;
             width: 100%;
             max-width: 1000px;
+            position: relative;
         }
         
         .stats-panel {
@@ -59,6 +60,7 @@
             max-width: 300px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             border: 2px solid #ffcc00;
+            z-index: 2;
         }
         
         .stat-item {
@@ -110,12 +112,13 @@
             flex-direction: column;
             align-items: center;
             gap: 15px;
+            position: relative;
         }
         
         .game-board {
             display: grid;
-            grid-template-columns: repeat(25, minmax(8px, 15px));
-            grid-template-rows: repeat(25, minmax(8px, 15px));
+            grid-template-columns: repeat(9, minmax(25px, 35px));
+            grid-template-rows: repeat(9, minmax(25px, 35px));
             gap: 1px;
             background: rgba(0, 0, 0, 0.4);
             padding: 8px;
@@ -124,19 +127,26 @@
             border: 2px solid #ffcc00;
             max-width: 100%;
             overflow: hidden;
+            position: relative;
         }
         
         .cell {
             aspect-ratio: 1/1;
             background: #2c3e50;
-            border-radius: 2px;
+            border-radius: 3px;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            position: relative;
         }
         
         .cell.player {
             background: #ffcc00;
             box-shadow: 0 0 8px #ffcc00;
             border-radius: 50%;
+            z-index: 2;
         }
         
         .cell.visited {
@@ -147,6 +157,7 @@
             background: radial-gradient(circle, #ff00ff, #9900cc);
             box-shadow: 0 0 8px #ff00ff;
             animation: pulse 2s infinite;
+            z-index: 3;
         }
         
         @keyframes pulse {
@@ -156,32 +167,39 @@
         }
         
         .mobile-controls {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(3, 1fr);
             gap: 8px;
             width: 180px;
             height: 180px;
-            margin-top: 10px;
+            z-index: 1;
+            opacity: 0.7;
+            pointer-events: none;
         }
         
         .control-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 204, 0, 0.8);
+            background: rgba(255, 204, 0, 0.3);
             border-radius: 50%;
-            color: #1a2a6c;
+            color: rgba(255, 204, 0, 0.8);
             font-size: 1.5rem;
             cursor: pointer;
             transition: all 0.3s;
-            border: none;
+            border: 1px solid rgba(255, 204, 0, 0.5);
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            pointer-events: auto;
         }
         
         .control-btn:active {
             transform: scale(0.95);
-            background: #ffd700;
+            background: rgba(255, 215, 0, 0.5);
         }
         
         .control-btn.up {
@@ -217,6 +235,15 @@
         
         .controls-info .mobile-info {
             display: none;
+        }
+        
+        .map-info {
+            margin-top: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            text-align: center;
         }
         
         .modal {
@@ -423,6 +450,30 @@
             100% { transform: scale(1.1); }
         }
         
+        .merchant-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .coins-display {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .coins-icon {
+            color: #ffcc00;
+            font-size: 1.5rem;
+        }
+        
         /* Адаптивность */
         @media (max-width: 768px) {
             .game-container {
@@ -463,12 +514,21 @@
             .controls-info .mobile-info {
                 display: block;
             }
+            
+            .mobile-controls {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .control-btn {
+                font-size: 1.2rem;
+            }
         }
         
         @media (max-width: 480px) {
             .game-board {
-                grid-template-columns: repeat(25, minmax(6px, 10px));
-                grid-template-rows: repeat(25, minmax(6px, 10px));
+                grid-template-columns: repeat(9, minmax(20px, 25px));
+                grid-template-rows: repeat(9, minmax(20px, 25px));
             }
             
             .inventory-item {
@@ -492,6 +552,11 @@
                 width: 120px;
                 height: 120px;
                 font-size: 3rem;
+            }
+            
+            .mobile-controls {
+                width: 120px;
+                height: 120px;
             }
         }
     </style>
@@ -535,7 +600,7 @@
         <div class="game-area">
             <div class="game-board" id="game-board"></div>
             
-            <!-- Мобильные элементы управления -->
+            <!-- Полупрозрачные элементы управления -->
             <div class="mobile-controls">
                 <button class="control-btn up" id="up-btn"><i class="fas fa-arrow-up"></i></button>
                 <button class="control-btn down" id="down-btn"><i class="fas fa-arrow-down"></i></button>
@@ -543,8 +608,11 @@
                 <button class="control-btn right" id="right-btn"><i class="fas fa-arrow-right"></i></button>
             </div>
             
+            <div class="map-info">
+                <i class="fas fa-binoculars"></i> Видимая область: 9×9 клеток
+            </div>
+            
             <div class="controls-info">
-                <span class="desktop-info">Используйте стрелки на клавиатуре для перемещения</span>
                 <span class="mobile-info">Используйте кнопки управления для перемещения</span>
                 <p>Каждый шаг может привести к неожиданным событиям!</p>
             </div>
@@ -585,7 +653,13 @@
     
     <div class="modal" id="merchant-modal">
         <div class="modal-content">
-            <h2 class="modal-title"><i class="fas fa-coins"></i> Встреча с торговцем</h2>
+            <div class="merchant-header">
+                <h2 class="modal-title"><i class="fas fa-coins"></i> Встреча с торговцем</h2>
+                <div class="coins-display">
+                    <i class="fas fa-coins coins-icon"></i>
+                    <span id="merchant-coins">20</span>
+                </div>
+            </div>
             <p class="event-description">Что вы хотите сделать?</p>
             
             <div class="merchant-items">
@@ -652,6 +726,7 @@
     <script>
         // Игровые константы
         const BOARD_SIZE = 25;
+        const VISIBLE_SIZE = 9; // Видимая область вокруг игрока
         const PLAYER_START_HEALTH = 100;
         const PLAYER_START_DAMAGE = 10;
         const PLAYER_START_COINS = 20;
@@ -748,6 +823,7 @@
         const fursElement = document.getElementById('furs');
         const potionsSmallElement = document.getElementById('potions-small');
         const potionsLargeElement = document.getElementById('potions-large');
+        const merchantCoinsElement = document.getElementById('merchant-coins');
         
         // Модальные окна
         const potionModal = document.getElementById('potion-modal');
@@ -760,8 +836,14 @@
         function initGameBoard() {
             gameBoard.innerHTML = '';
             
-            for (let y = 0; y < BOARD_SIZE; y++) {
-                for (let x = 0; x < BOARD_SIZE; x++) {
+            // Создаем только видимую область 9x9
+            const startX = Math.max(0, gameState.player.position.x - Math.floor(VISIBLE_SIZE / 2));
+            const startY = Math.max(0, gameState.player.position.y - Math.floor(VISIBLE_SIZE / 2));
+            const endX = Math.min(BOARD_SIZE, startX + VISIBLE_SIZE);
+            const endY = Math.min(BOARD_SIZE, startY + VISIBLE_SIZE);
+            
+            for (let y = startY; y < endY; y++) {
+                for (let x = startX; x < endX; x++) {
                     const cell = document.createElement('div');
                     cell.classList.add('cell');
                     cell.dataset.x = x;
@@ -770,6 +852,11 @@
                     // Отметка реликвии
                     if (x === gameState.relicPosition.x && y === gameState.relicPosition.y) {
                         cell.classList.add('relic');
+                    }
+                    
+                    // Пометить посещенные клетки
+                    if (gameState.visitedCells.has(`${x},${y}`)) {
+                        cell.classList.add('visited');
                     }
                     
                     gameBoard.appendChild(cell);
@@ -812,6 +899,11 @@
             fursElement.textContent = `Шкуры: ${gameState.player.furs}`;
             potionsSmallElement.textContent = `Микстуры (+20): ${gameState.player.potions.small}`;
             potionsLargeElement.textContent = `Микстуры (+50): ${gameState.player.potions.large}`;
+            
+            // Обновление монет в окне торговца
+            if (merchantCoinsElement) {
+                merchantCoinsElement.textContent = gameState.player.coins;
+            }
         }
         
         // Перемещение игрока
@@ -823,7 +915,9 @@
             if (newX >= 0 && newX < BOARD_SIZE && newY >= 0 && newY < BOARD_SIZE) {
                 gameState.player.position.x = newX;
                 gameState.player.position.y = newY;
-                updatePlayerPosition();
+                
+                // Перерисовка видимой области
+                initGameBoard();
                 
                 // Проверка на нахождение реликвии
                 if (newX === gameState.relicPosition.x && newY === gameState.relicPosition.y) {
@@ -1053,6 +1147,10 @@
         // Показать модальное окно
         function showModal(modal) {
             modal.style.display = 'flex';
+            // Обновляем монеты при открытии торговца
+            if (modal === merchantModal) {
+                merchantCoinsElement.textContent = gameState.player.coins;
+            }
         }
         
         // Скрыть модальное окно
