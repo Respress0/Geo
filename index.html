@@ -1,56 +1,1032 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EventApp - Telegram Mini App</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Охотник за реликвиями</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+        }
+        
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        .stats-panel {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+            width: 300px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            border: 2px solid #ffcc00;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        
+        .inventory {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .inventory h3 {
+            margin-bottom: 10px;
+            color: #ffcc00;
+            text-align: center;
+        }
+        
+        .inventory-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .inventory-item {
+            background: rgba(50, 50, 150, 0.6);
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(25, 20px);
+            grid-template-rows: repeat(25, 20px);
+            gap: 1px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            border: 2px solid #ffcc00;
+        }
+        
+        .cell {
+            width: 20px;
+            height: 20px;
+            background: #2c3e50;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+        
+        .cell.player {
+            background: #ffcc00;
+            box-shadow: 0 0 10px #ffcc00;
+            border-radius: 50%;
+        }
+        
+        .cell.visited {
+            background: #3498db;
+        }
+        
+        .cell.relic {
+            background: radial-gradient(circle, #ff00ff, #9900cc);
+            box-shadow: 0 0 10px #ff00ff;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+            color: #ccc;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+            border: 3px solid #ffcc00;
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(255, 204, 0, 0.5);
+            text-align: center;
+        }
+        
+        .modal-title {
+            color: #ffcc00;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+        }
+        
+        .event-description {
+            margin: 20px 0;
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+        
+        .combat-log {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .combat-entry {
+            margin: 8px 0;
+            padding: 5px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .player-turn {
+            color: #00ff00;
+        }
+        
+        .enemy-turn {
+            color: #ff5555;
+        }
+        
+        .critical {
+            color: #ffcc00;
+            font-weight: bold;
+        }
+        
+        .stunned {
+            color: #55aaff;
+            font-weight: bold;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            background: #ffcc00;
+            color: #1a2a6c;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            min-width: 150px;
+        }
+        
+        .btn:hover {
+            background: #ffd700;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 204, 0, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-buy {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-sell {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-drink {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-continue {
+            background: #9b59b6;
+            color: white;
+        }
+        
+        .merchant-items {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .merchant-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #444;
+        }
+        
+        .merchant-item h4 {
+            color: #ffcc00;
+            margin-bottom: 10px;
+        }
+        
+        .item-price {
+            color: #27ae60;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .relic-image {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            border-radius: 10px;
+            background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            animation: rotate 10s infinite linear;
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.7);
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .combat-animation {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+        
+        .combatant {
+            text-align: center;
+        }
+        
+        .combatant img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+        
+        .swords {
+            font-size: 3rem;
+            color: #ffcc00;
+            animation: clash 1s infinite alternate;
+        }
+        
+        @keyframes clash {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.2); }
+        }
+        
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .game-board {
+                transform: scale(0.8);
+            }
+            
+            .stats-panel {
+                width: 100%;
+                max-width: 500px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="app-container">
-    <header class="app-header">
-      <h1>EventApp</h1>
-      <div class="user-avatar" id="userAvatar">U</div>
+    <header>
+        <h1>Охотник за реликвиями</h1>
+        <p>Перемещайтесь по полю, сражайтесь с дикими зверями, торгуйте с купцами и найдите священную реликвию!</p>
     </header>
     
-    <main class="app-main" id="appContent">
-      <!-- Контент будет подгружаться динамически -->
-    </main>
-    
-    <nav class="tab-bar">
-      <button class="tab-btn active" data-tab="feed">
-        <i class="fas fa-home"></i>
-        <span>Лента</span>
-      </button>
-      <button class="tab-btn" data-tab="calendar">
-        <i class="fas fa-calendar"></i>
-        <span>Календарь</span>
-      </button>
-      <button class="tab-btn" data-tab="create">
-        <i class="fas fa-plus-circle"></i>
-        <span>Создать</span>
-      </button>
-      <button class="tab-btn" data-tab="my-events">
-        <i class="fas fa-star"></i>
-        <span>Мои</span>
-      </button>
-      <button class="tab-btn" data-tab="account">
-        <i class="fas fa-user"></i>
-        <span>Аккаунт</span>
-      </button>
-    </nav>
-  </div>
-
-  <!-- Модальные окна -->
-  <div id="eventModal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
-      <h2 id="modalTitle">Детали события</h2>
-      <div id="modalBody"></div>
+    <div class="game-container">
+        <div class="stats-panel">
+            <h2>Статистика игрока</h2>
+            <div class="stat-item">
+                <span>Здоровье:</span>
+                <span class="stat-value" id="health">100</span>
+            </div>
+            <div class="stat-item">
+                <span>Урон:</span>
+                <span class="stat-value" id="damage">10</span>
+            </div>
+            <div class="stat-item">
+                <span>Монеты:</span>
+                <span class="stat-value" id="coins">20</span>
+            </div>
+            <div class="stat-item">
+                <span>Оружие:</span>
+                <span class="stat-value" id="weapon">Нет</span>
+            </div>
+            
+            <div class="inventory">
+                <h3>Инвентарь</h3>
+                <div class="inventory-items">
+                    <div class="inventory-item" id="furs">Шкуры: 0</div>
+                    <div class="inventory-item" id="potions-small">Микстуры (+20): 0</div>
+                    <div class="inventory-item" id="potions-large">Микстуры (+50): 0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-board" id="game-board"></div>
     </div>
-  </div>
+    
+    <div class="controls">
+        <p>Используйте стрелки на клавиатуре для перемещения</p>
+        <p>Каждый шаг может привести к неожиданным событиям!</p>
+    </div>
+    
+    <!-- Модальное окно для микстур -->
+    <div class="modal" id="potion-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Вы наступили на новую клетку</h2>
+            <p class="event-description">Вы можете выпить микстуру для восстановления здоровья:</p>
+            <div class="modal-buttons">
+                <button class="btn btn-drink" id="drink-small">Выпить микстуру (+20 HP)</button>
+                <button class="btn btn-drink" id="drink-large">Выпить микстуру (+50 HP)</button>
+                <button class="btn btn-continue" id="continue">Продолжить без микстуры</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для боя -->
+    <div class="modal" id="combat-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">На вас напал дикий зверь!</h2>
+            <div class="combat-animation">
+                <div class="combatant">
+                    <div class="player-icon">🧙‍♂️</div>
+                    <p>Игрок</p>
+                </div>
+                <div class="swords">⚔️</div>
+                <div class="combatant">
+                    <div class="enemy-icon" id="enemy-icon">🐺</div>
+                    <p id="enemy-name">Волк</p>
+                </div>
+            </div>
+            <div class="combat-log" id="combat-log"></div>
+            <button class="btn" id="combat-continue">Продолжить</button>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для торговца -->
+    <div class="modal" id="merchant-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Вы встретили торговца</h2>
+            <p class="event-description">Что вы хотите сделать?</p>
+            
+            <div class="merchant-items">
+                <div class="merchant-item">
+                    <h4>Нож</h4>
+                    <p>+5 урона</p>
+                    <p>+15% шанс критического удара</p>
+                    <p class="item-price">40 монет</p>
+                    <button class="btn btn-buy" data-item="knife">Купить</button>
+                </div>
+                <div class="merchant-item">
+                    <h4>Меч</h4>
+                    <p>+15 урона</p>
+                    <p class="item-price">40 монет</p>
+                    <button class="btn btn-buy" data-item="sword">Купить</button>
+                </div>
+                <div class="merchant-item">
+                    <h4>Молот</h4>
+                    <p>+10 урона</p>
+                    <p>15% шанс оглушить противника</p>
+                    <p class="item-price">60 монет</p>
+                    <button class="btn btn-buy" data-item="hammer">Купить</button>
+                </div>
+                <div class="merchant-item">
+                    <h4>Микстура здоровья (+20)</h4>
+                    <p>Восстанавливает 20 здоровья</p>
+                    <p class="item-price">2 монеты</p>
+                    <button class="btn btn-buy" data-item="potion-small">Купить</button>
+                </div>
+                <div class="merchant-item">
+                    <h4>Микстура здоровья (+50)</h4>
+                    <p>Восстанавливает 50 здоровья</p>
+                    <p class="item-price">5 монеты</p>
+                    <button class="btn btn-buy" data-item="potion-large">Купить</button>
+                </div>
+                <div class="merchant-item">
+                    <h4>Продать шкуры</h4>
+                    <p>Продать все шкуры по 5 монет за штуку</p>
+                    <button class="btn btn-sell" id="sell-furs">Продать</button>
+                </div>
+            </div>
+            
+            <button class="btn btn-continue" id="merchant-continue">Уйти</button>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для реликвии -->
+    <div class="modal" id="relic-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Победа!</h2>
+            <p class="event-description">Вы нашли священную реликвию! Ваше путешествие увенчалось успехом!</p>
+            <div class="relic-image">🏆</div>
+            <button class="btn" id="restart">Играть снова</button>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для ничего не случилось -->
+    <div class="modal" id="nothing-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Ничего не произошло</h2>
+            <p class="event-description">Вы осторожно продвигаетесь дальше, но вокруг тишина...</p>
+            <button class="btn" id="nothing-continue">Продолжить</button>
+        </div>
+    </div>
 
-  <script src="script.js"></script>
+    <script>
+        // Игровые константы
+        const BOARD_SIZE = 25;
+        const PLAYER_START_HEALTH = 100;
+        const PLAYER_START_DAMAGE = 10;
+        const PLAYER_START_COINS = 20;
+        
+        // Вероятности событий
+        const NOTHING_CHANCE = 0.60;
+        const BEAST_CHANCE = 0.20;
+        const MERCHANT_CHANCE = 0.25;
+        const RELIC_CHANCE = 0.01;
+        
+        // Звери
+        const ENEMIES = {
+            wolf: {
+                name: "Волк",
+                icon: "🐺",
+                health: 40,
+                damage: 15,
+                critChance: 0,
+                stunChance: 0
+            },
+            fox: {
+                name: "Лиса",
+                icon: "🦊",
+                health: 30,
+                damage: 10,
+                critChance: 0.25,
+                stunChance: 0
+            },
+            bear: {
+                name: "Медведь",
+                icon: "🐻",
+                health: 50,
+                damage: 15,
+                critChance: 0,
+                stunChance: 0.20
+            }
+        };
+        
+        // Оружие
+        const WEAPONS = {
+            knife: {
+                name: "Нож",
+                damageBonus: 5,
+                critBonus: 0.15,
+                stunBonus: 0,
+                price: 40
+            },
+            sword: {
+                name: "Меч",
+                damageBonus: 15,
+                critBonus: 0,
+                stunBonus: 0,
+                price: 40
+            },
+            hammer: {
+                name: "Молот",
+                damageBonus: 10,
+                critBonus: 0,
+                stunBonus: 0.15,
+                price: 60
+            }
+        };
+        
+        // Состояние игры
+        const gameState = {
+            player: {
+                health: PLAYER_START_HEALTH,
+                baseDamage: PLAYER_START_DAMAGE,
+                damage: PLAYER_START_DAMAGE,
+                coins: PLAYER_START_COINS,
+                critChance: 0,
+                stunChance: 0,
+                position: { x: Math.floor(BOARD_SIZE / 2), y: Math.floor(BOARD_SIZE / 2) },
+                weapon: null,
+                furs: 0,
+                potions: {
+                    small: 0,
+                    large: 0
+                }
+            },
+            visitedCells: new Set(),
+            relicPosition: {
+                x: Math.floor(Math.random() * BOARD_SIZE),
+                y: Math.floor(Math.random() * BOARD_SIZE)
+            }
+        };
+        
+        // DOM элементы
+        const gameBoard = document.getElementById('game-board');
+        const healthElement = document.getElementById('health');
+        const damageElement = document.getElementById('damage');
+        const coinsElement = document.getElementById('coins');
+        const weaponElement = document.getElementById('weapon');
+        const fursElement = document.getElementById('furs');
+        const potionsSmallElement = document.getElementById('potions-small');
+        const potionsLargeElement = document.getElementById('potions-large');
+        
+        // Модальные окна
+        const potionModal = document.getElementById('potion-modal');
+        const combatModal = document.getElementById('combat-modal');
+        const merchantModal = document.getElementById('merchant-modal');
+        const relicModal = document.getElementById('relic-modal');
+        const nothingModal = document.getElementById('nothing-modal');
+        
+        // Инициализация игрового поля
+        function initGameBoard() {
+            gameBoard.innerHTML = '';
+            
+            for (let y = 0; y < BOARD_SIZE; y++) {
+                for (let x = 0; x < BOARD_SIZE; x++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    
+                    // Отметка реликвии
+                    if (x === gameState.relicPosition.x && y === gameState.relicPosition.y) {
+                        cell.classList.add('relic');
+                    }
+                    
+                    gameBoard.appendChild(cell);
+                }
+            }
+            
+            // Обновление позиции игрока
+            updatePlayerPosition();
+        }
+        
+        // Обновление позиции игрока
+        function updatePlayerPosition() {
+            // Сброс предыдущей позиции
+            document.querySelectorAll('.cell.player').forEach(cell => {
+                cell.classList.remove('player');
+            });
+            
+            // Установка новой позиции
+            const playerX = gameState.player.position.x;
+            const playerY = gameState.player.position.y;
+            
+            const playerCell = document.querySelector(`.cell[data-x="${playerX}"][data-y="${playerY}"]`);
+            if (playerCell) {
+                playerCell.classList.add('player');
+                
+                // Пометить клетку как посещенную
+                if (!playerCell.classList.contains('visited')) {
+                    playerCell.classList.add('visited');
+                    gameState.visitedCells.add(`${playerX},${playerY}`);
+                }
+            }
+        }
+        
+        // Обновление UI
+        function updateUI() {
+            healthElement.textContent = gameState.player.health;
+            damageElement.textContent = gameState.player.damage;
+            coinsElement.textContent = gameState.player.coins;
+            weaponElement.textContent = gameState.player.weapon ? WEAPONS[gameState.player.weapon].name : "Нет";
+            fursElement.textContent = `Шкуры: ${gameState.player.furs}`;
+            potionsSmallElement.textContent = `Микстуры (+20): ${gameState.player.potions.small}`;
+            potionsLargeElement.textContent = `Микстуры (+50): ${gameState.player.potions.large}`;
+        }
+        
+        // Перемещение игрока
+        function movePlayer(dx, dy) {
+            const newX = gameState.player.position.x + dx;
+            const newY = gameState.player.position.y + dy;
+            
+            // Проверка границ поля
+            if (newX >= 0 && newX < BOARD_SIZE && newY >= 0 && newY < BOARD_SIZE) {
+                gameState.player.position.x = newX;
+                gameState.player.position.y = newY;
+                updatePlayerPosition();
+                
+                // Проверка на нахождение реликвии
+                if (newX === gameState.relicPosition.x && newY === gameState.relicPosition.y) {
+                    setTimeout(() => {
+                        showModal(relicModal);
+                    }, 300);
+                    return;
+                }
+                
+                // Показать окно микстур
+                setTimeout(() => {
+                    showModal(potionModal);
+                }, 300);
+            }
+        }
+        
+        // Обработка событий после шага
+        function processStepEvent() {
+            const rand = Math.random();
+            let eventType = 'nothing';
+            
+            if (rand < RELIC_CHANCE) {
+                // Реликвия обрабатывается при перемещении
+                return;
+            } else if (rand < RELIC_CHANCE + BEAST_CHANCE) {
+                eventType = 'beast';
+            } else if (rand < RELIC_CHANCE + BEAST_CHANCE + MERCHANT_CHANCE) {
+                eventType = 'merchant';
+            } else {
+                eventType = 'nothing';
+            }
+            
+            setTimeout(() => {
+                if (eventType === 'beast') {
+                    startCombat();
+                } else if (eventType === 'merchant') {
+                    showModal(merchantModal);
+                } else {
+                    showModal(nothingModal);
+                }
+            }, 300);
+        }
+        
+        // Начать бой
+        function startCombat() {
+            // Выбор случайного зверя
+            const enemyKeys = Object.keys(ENEMIES);
+            const enemyKey = enemyKeys[Math.floor(Math.random() * enemyKeys.length)];
+            const enemy = {...ENEMIES[enemyKey]};
+            
+            // Обновление UI врага
+            document.getElementById('enemy-icon').textContent = enemy.icon;
+            document.getElementById('enemy-name').textContent = enemy.name;
+            
+            // Очистка лога боя
+            const combatLog = document.getElementById('combat-log');
+            combatLog.innerHTML = '';
+            
+            // Симуляция боя
+            simulateCombat(enemy, combatLog);
+            
+            // Показать модальное окно боя
+            showModal(combatModal);
+        }
+        
+        // Симуляция боя
+        function simulateCombat(enemy, combatLog) {
+            let playerHealth = gameState.player.health;
+            let enemyHealth = enemy.health;
+            let playerStunned = false;
+            let enemyStunned = false;
+            
+            // Функция добавления записи в лог
+            function addLogEntry(message, type) {
+                const entry = document.createElement('div');
+                entry.classList.add('combat-entry', type);
+                entry.textContent = message;
+                combatLog.appendChild(entry);
+                combatLog.scrollTop = combatLog.scrollHeight;
+            }
+            
+            // Бой продолжается, пока кто-то не умрет
+            while (playerHealth > 0 && enemyHealth > 0) {
+                // Ход игрока, если не оглушен
+                if (!playerStunned) {
+                    let playerDamage = gameState.player.damage;
+                    let isCrit = false;
+                    
+                    // Проверка на критический удар
+                    if (Math.random() < gameState.player.critChance) {
+                        playerDamage = Math.floor(playerDamage * 1.5);
+                        isCrit = true;
+                    }
+                    
+                    enemyHealth -= playerDamage;
+                    
+                    if (isCrit) {
+                        addLogEntry(`Игрок наносит критический удар (${playerDamage} урона)!`, 'player-turn critical');
+                    } else {
+                        addLogEntry(`Игрок наносит ${playerDamage} урона.`, 'player-turn');
+                    }
+                    
+                    // Проверка на оглушение
+                    if (Math.random() < gameState.player.stunChance) {
+                        enemyStunned = true;
+                        addLogEntry(`Зверь оглушен!`, 'player-turn stunned');
+                    }
+                    
+                    // Проверка смерти врага
+                    if (enemyHealth <= 0) {
+                        addLogEntry(`Вы победили ${enemy.name}!`, 'player-turn');
+                        gameState.player.furs += 1;
+                        break;
+                    }
+                } else {
+                    addLogEntry(`Игрок оглушен и пропускает ход!`, 'player-turn stunned');
+                    playerStunned = false;
+                }
+                
+                // Ход зверя, если не оглушен
+                if (!enemyStunned) {
+                    let enemyDamage = enemy.damage;
+                    let isCrit = false;
+                    
+                    // Проверка на критический удар
+                    if (Math.random() < enemy.critChance) {
+                        enemyDamage = Math.floor(enemyDamage * 1.5);
+                        isCrit = true;
+                    }
+                    
+                    playerHealth -= enemyDamage;
+                    
+                    if (isCrit) {
+                        addLogEntry(`${enemy.name} наносит критический удар (${enemyDamage} урона)!`, 'enemy-turn critical');
+                    } else {
+                        addLogEntry(`${enemy.name} наносит ${enemyDamage} урона.`, 'enemy-turn');
+                    }
+                    
+                    // Проверка на оглушение
+                    if (Math.random() < enemy.stunChance) {
+                        playerStunned = true;
+                        addLogEntry(`Игрок оглушен!`, 'enemy-turn stunned');
+                    }
+                    
+                    // Проверка смерти игрока
+                    if (playerHealth <= 0) {
+                        addLogEntry(`Вы были побеждены ${enemy.name}!`, 'enemy-turn');
+                        break;
+                    }
+                } else {
+                    addLogEntry(`${enemy.name} оглушен и пропускает ход!`, 'enemy-turn stunned');
+                    enemyStunned = false;
+                }
+            }
+            
+            // Обновление здоровья игрока
+            gameState.player.health = Math.max(0, playerHealth);
+            updateUI();
+        }
+        
+        // Покупка предмета у торговца
+        function buyItem(item) {
+            if (item === 'knife' || item === 'sword' || item === 'hammer') {
+                const weapon = WEAPONS[item];
+                if (gameState.player.coins >= weapon.price) {
+                    gameState.player.coins -= weapon.price;
+                    gameState.player.weapon = item;
+                    gameState.player.damage = gameState.player.baseDamage + weapon.damageBonus;
+                    gameState.player.critChance = weapon.critBonus;
+                    gameState.player.stunChance = weapon.stunBonus;
+                    updateUI();
+                    alert(`Вы купили ${weapon.name}!`);
+                } else {
+                    alert('Недостаточно монет!');
+                }
+            } else if (item === 'potion-small') {
+                if (gameState.player.coins >= 2) {
+                    gameState.player.coins -= 2;
+                    gameState.player.potions.small += 1;
+                    updateUI();
+                    alert('Вы купили микстуру здоровья (+20)!');
+                } else {
+                    alert('Недостаточно монет!');
+                }
+            } else if (item === 'potion-large') {
+                if (gameState.player.coins >= 5) {
+                    gameState.player.coins -= 5;
+                    gameState.player.potions.large += 1;
+                    updateUI();
+                    alert('Вы купили микстуру здоровья (+50)!');
+                } else {
+                    alert('Недостаточно монет!');
+                }
+            }
+        }
+        
+        // Продажа шкур
+        function sellFurs() {
+            if (gameState.player.furs > 0) {
+                const total = gameState.player.furs * 5;
+                gameState.player.coins += total;
+                gameState.player.furs = 0;
+                updateUI();
+                alert(`Вы продали шкуры за ${total} монет!`);
+            } else {
+                alert('У вас нет шкур для продажи!');
+            }
+        }
+        
+        // Выпить микстуру
+        function drinkPotion(type) {
+            if (type === 'small' && gameState.player.potions.small > 0) {
+                gameState.player.health = Math.min(100, gameState.player.health + 20);
+                gameState.player.potions.small -= 1;
+            } else if (type === 'large' && gameState.player.potions.large > 0) {
+                gameState.player.health = Math.min(100, gameState.player.health + 50);
+                gameState.player.potions.large -= 1;
+            } else {
+                alert('У вас нет микстур этого типа!');
+                return false;
+            }
+            
+            updateUI();
+            return true;
+        }
+        
+        // Показать модальное окно
+        function showModal(modal) {
+            modal.style.display = 'flex';
+        }
+        
+        // Скрыть модальное окно
+        function hideModal(modal) {
+            modal.style.display = 'none';
+        }
+        
+        // Перезапуск игры
+        function restartGame() {
+            gameState.player.health = PLAYER_START_HEALTH;
+            gameState.player.damage = PLAYER_START_DAMAGE;
+            gameState.player.coins = PLAYER_START_COINS;
+            gameState.player.critChance = 0;
+            gameState.player.stunChance = 0;
+            gameState.player.weapon = null;
+            gameState.player.furs = 0;
+            gameState.player.potions.small = 0;
+            gameState.player.potions.large = 0;
+            gameState.player.position = { x: Math.floor(BOARD_SIZE / 2), y: Math.floor(BOARD_SIZE / 2) };
+            gameState.visitedCells.clear();
+            
+            // Генерация новой позиции реликвии
+            gameState.relicPosition = {
+                x: Math.floor(Math.random() * BOARD_SIZE),
+                y: Math.floor(Math.random() * BOARD_SIZE)
+            };
+            
+            initGameBoard();
+            updateUI();
+            
+            // Скрыть все модальные окна
+            hideModal(potionModal);
+            hideModal(combatModal);
+            hideModal(merchantModal);
+            hideModal(relicModal);
+            hideModal(nothingModal);
+        }
+        
+        // Обработка нажатия клавиш
+        document.addEventListener('keydown', (e) => {
+            if (document.querySelector('.modal[style*="display: flex"]')) {
+                return; // Не обрабатывать клавиши, когда открыто модальное окно
+            }
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                    movePlayer(0, -1);
+                    break;
+                case 'ArrowDown':
+                    movePlayer(0, 1);
+                    break;
+                case 'ArrowLeft':
+                    movePlayer(-1, 0);
+                    break;
+                case 'ArrowRight':
+                    movePlayer(1, 0);
+                    break;
+            }
+        });
+        
+        // Назначение обработчиков событий
+        document.getElementById('drink-small').addEventListener('click', () => {
+            if (drinkPotion('small')) {
+                hideModal(potionModal);
+                processStepEvent();
+            }
+        });
+        
+        document.getElementById('drink-large').addEventListener('click', () => {
+            if (drinkPotion('large')) {
+                hideModal(potionModal);
+                processStepEvent();
+            }
+        });
+        
+        document.getElementById('continue').addEventListener('click', () => {
+            hideModal(potionModal);
+            processStepEvent();
+        });
+        
+        document.getElementById('combat-continue').addEventListener('click', () => {
+            hideModal(combatModal);
+            
+            // Проверка смерти игрока
+            if (gameState.player.health <= 0) {
+                alert('Вы погибли! Игра начнется заново.');
+                restartGame();
+            }
+        });
+        
+        document.querySelectorAll('.btn-buy').forEach(button => {
+            button.addEventListener('click', () => {
+                const item = button.dataset.item;
+                buyItem(item);
+            });
+        });
+        
+        document.getElementById('sell-furs').addEventListener('click', () => {
+            sellFurs();
+        });
+        
+        document.getElementById('merchant-continue').addEventListener('click', () => {
+            hideModal(merchantModal);
+        });
+        
+        document.getElementById('restart').addEventListener('click', () => {
+            restartGame();
+        });
+        
+        document.getElementById('nothing-continue').addEventListener('click', () => {
+            hideModal(nothingModal);
+        });
+        
+        // Инициализация игры
+        initGameBoard();
+        updateUI();
+    </script>
 </body>
 </html>
