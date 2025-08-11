@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Охотник за реликвиями</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
@@ -18,23 +19,25 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 15px;
             color: #fff;
+            overflow-x: hidden;
         }
         
         header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             width: 100%;
             padding: 10px;
             background: rgba(0, 0, 0, 0.4);
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
         }
         
         h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
             color: #ffcc00;
             text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
         }
@@ -43,16 +46,17 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 30px;
-            max-width: 1200px;
+            gap: 20px;
             width: 100%;
+            max-width: 1000px;
         }
         
         .stats-panel {
             background: rgba(0, 0, 0, 0.6);
             border-radius: 10px;
-            padding: 20px;
-            width: 300px;
+            padding: 15px;
+            width: 100%;
+            max-width: 300px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             border: 2px solid #ffcc00;
         }
@@ -60,9 +64,10 @@
         .stat-item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 1px solid #444;
+            font-size: 0.95rem;
         }
         
         .stat-value {
@@ -71,54 +76,66 @@
         }
         
         .inventory {
-            margin-top: 20px;
+            margin-top: 15px;
             background: rgba(0, 0, 0, 0.4);
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
         }
         
         .inventory h3 {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             color: #ffcc00;
             text-align: center;
+            font-size: 1.1rem;
         }
         
         .inventory-items {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
+            justify-content: center;
         }
         
         .inventory-item {
             background: rgba(50, 50, 150, 0.6);
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 5px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
         }
         
         .game-board {
             display: grid;
-            grid-template-columns: repeat(25, 20px);
-            grid-template-rows: repeat(25, 20px);
+            grid-template-columns: repeat(25, minmax(8px, 15px));
+            grid-template-rows: repeat(25, minmax(8px, 15px));
             gap: 1px;
             background: rgba(0, 0, 0, 0.4);
-            padding: 10px;
-            border-radius: 10px;
+            padding: 8px;
+            border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             border: 2px solid #ffcc00;
+            max-width: 100%;
+            overflow: hidden;
         }
         
         .cell {
-            width: 20px;
-            height: 20px;
+            aspect-ratio: 1/1;
             background: #2c3e50;
-            border-radius: 3px;
+            border-radius: 2px;
             transition: all 0.2s;
         }
         
         .cell.player {
             background: #ffcc00;
-            box-shadow: 0 0 10px #ffcc00;
+            box-shadow: 0 0 8px #ffcc00;
             border-radius: 50%;
         }
         
@@ -128,7 +145,7 @@
         
         .cell.relic {
             background: radial-gradient(circle, #ff00ff, #9900cc);
-            box-shadow: 0 0 10px #ff00ff;
+            box-shadow: 0 0 8px #ff00ff;
             animation: pulse 2s infinite;
         }
         
@@ -138,10 +155,68 @@
             100% { transform: scale(1); }
         }
         
-        .controls {
-            margin-top: 20px;
+        .mobile-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 8px;
+            width: 180px;
+            height: 180px;
+            margin-top: 10px;
+        }
+        
+        .control-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 204, 0, 0.8);
+            border-radius: 50%;
+            color: #1a2a6c;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+            background: #ffd700;
+        }
+        
+        .control-btn.up {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        
+        .control-btn.down {
+            grid-column: 2;
+            grid-row: 3;
+        }
+        
+        .control-btn.left {
+            grid-column: 1;
+            grid-row: 2;
+        }
+        
+        .control-btn.right {
+            grid-column: 3;
+            grid-row: 2;
+        }
+        
+        .controls-info {
+            margin-top: 15px;
             text-align: center;
             color: #ccc;
+            font-size: 0.9rem;
+        }
+        
+        .controls-info .desktop-info {
+            display: block;
+        }
+        
+        .controls-info .mobile-info {
+            display: none;
         }
         
         .modal {
@@ -151,19 +226,20 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             z-index: 100;
             justify-content: center;
             align-items: center;
+            padding: 15px;
         }
         
         .modal-content {
             background: linear-gradient(135deg, #1a2a6c, #2c3e50);
             border: 3px solid #ffcc00;
-            border-radius: 15px;
-            padding: 30px;
-            width: 90%;
-            max-width: 600px;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 0 30px rgba(255, 204, 0, 0.5);
@@ -172,30 +248,31 @@
         
         .modal-title {
             color: #ffcc00;
-            margin-bottom: 20px;
-            font-size: 2rem;
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            text-shadow: 0 0 8px rgba(255, 204, 0, 0.7);
         }
         
         .event-description {
-            margin: 20px 0;
-            font-size: 1.2rem;
-            line-height: 1.6;
+            margin: 15px 0;
+            font-size: 1rem;
+            line-height: 1.5;
         }
         
         .combat-log {
             background: rgba(0, 0, 0, 0.4);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 20px 0;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 15px 0;
             text-align: left;
-            max-height: 200px;
+            max-height: 150px;
             overflow-y: auto;
+            font-size: 0.9rem;
         }
         
         .combat-entry {
-            margin: 8px 0;
-            padding: 5px;
+            margin: 6px 0;
+            padding: 4px;
             border-bottom: 1px solid #444;
         }
         
@@ -220,13 +297,13 @@
         .modal-buttons {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
-            margin-top: 20px;
+            margin-top: 15px;
         }
         
         .btn {
-            padding: 12px 25px;
+            padding: 12px 20px;
             border: none;
             border-radius: 5px;
             background: #ffcc00;
@@ -235,7 +312,8 @@
             cursor: pointer;
             transition: all 0.3s;
             font-size: 1rem;
-            min-width: 150px;
+            min-width: 130px;
+            flex: 1;
         }
         
         .btn:hover {
@@ -270,42 +348,44 @@
         
         .merchant-items {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
         }
         
         .merchant-item {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 8px;
-            padding: 15px;
+            padding: 12px;
             text-align: center;
             border: 1px solid #444;
         }
         
         .merchant-item h4 {
             color: #ffcc00;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            font-size: 1rem;
         }
         
         .item-price {
             color: #27ae60;
             font-weight: bold;
-            margin: 10px 0;
+            margin: 8px 0;
+            font-size: 0.9rem;
         }
         
         .relic-image {
-            width: 200px;
-            height: 200px;
-            margin: 20px auto;
+            width: 150px;
+            height: 150px;
+            margin: 15px auto;
             border-radius: 10px;
             background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 5rem;
+            font-size: 4rem;
             animation: rotate 10s infinite linear;
-            box-shadow: 0 0 30px rgba(255, 0, 255, 0.7);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.7);
         }
         
         @keyframes rotate {
@@ -317,193 +397,255 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            margin: 20px 0;
-            padding: 20px;
+            margin: 15px 0;
+            padding: 15px;
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
+            border-radius: 8px;
         }
         
         .combatant {
             text-align: center;
         }
         
-        .combatant img {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
+        .combatant-icon {
+            font-size: 3rem;
+            margin-bottom: 5px;
         }
         
         .swords {
-            font-size: 3rem;
+            font-size: 2.5rem;
             color: #ffcc00;
             animation: clash 1s infinite alternate;
         }
         
         @keyframes clash {
             0% { transform: scale(1); }
-            100% { transform: scale(1.2); }
+            100% { transform: scale(1.1); }
         }
         
+        /* Адаптивность */
         @media (max-width: 768px) {
             .game-container {
                 flex-direction: column;
                 align-items: center;
             }
             
-            .game-board {
-                transform: scale(0.8);
+            .stats-panel {
+                max-width: 100%;
             }
             
-            .stats-panel {
-                width: 100%;
-                max-width: 500px;
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .modal-content {
+                padding: 15px;
+            }
+            
+            .modal-title {
+                font-size: 1.3rem;
+            }
+            
+            .btn {
+                min-width: 100%;
+                padding: 15px;
+                font-size: 1.1rem;
+            }
+            
+            .merchant-items {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-info .desktop-info {
+                display: none;
+            }
+            
+            .controls-info .mobile-info {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .game-board {
+                grid-template-columns: repeat(25, minmax(6px, 10px));
+                grid-template-rows: repeat(25, minmax(6px, 10px));
+            }
+            
+            .inventory-item {
+                min-width: 100px;
+                font-size: 0.8rem;
+            }
+            
+            .stat-item {
+                font-size: 0.9rem;
+            }
+            
+            .combatant-icon {
+                font-size: 2.5rem;
+            }
+            
+            .swords {
+                font-size: 2rem;
+            }
+            
+            .relic-image {
+                width: 120px;
+                height: 120px;
+                font-size: 3rem;
             }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Охотник за реликвиями</h1>
-        <p>Перемещайтесь по полю, сражайтесь с дикими зверями, торгуйте с купцами и найдите священную реликвию!</p>
+        <h1><i class="fas fa-crown"></i> Охотник за реликвиями</h1>
+        <p>Перемещайтесь по полю, сражайтесь с дикими зверями и найдите священную реликвию!</p>
     </header>
     
     <div class="game-container">
         <div class="stats-panel">
-            <h2>Статистика игрока</h2>
+            <h2><i class="fas fa-chart-bar"></i> Статистика игрока</h2>
             <div class="stat-item">
-                <span>Здоровье:</span>
+                <span><i class="fas fa-heart"></i> Здоровье:</span>
                 <span class="stat-value" id="health">100</span>
             </div>
             <div class="stat-item">
-                <span>Урон:</span>
+                <span><i class="fas fa-bolt"></i> Урон:</span>
                 <span class="stat-value" id="damage">10</span>
             </div>
             <div class="stat-item">
-                <span>Монеты:</span>
+                <span><i class="fas fa-coins"></i> Монеты:</span>
                 <span class="stat-value" id="coins">20</span>
             </div>
             <div class="stat-item">
-                <span>Оружие:</span>
+                <span><i class="fas fa-shield-alt"></i> Оружие:</span>
                 <span class="stat-value" id="weapon">Нет</span>
             </div>
             
             <div class="inventory">
-                <h3>Инвентарь</h3>
+                <h3><i class="fas fa-backpack"></i> Инвентарь</h3>
                 <div class="inventory-items">
-                    <div class="inventory-item" id="furs">Шкуры: 0</div>
-                    <div class="inventory-item" id="potions-small">Микстуры (+20): 0</div>
-                    <div class="inventory-item" id="potions-large">Микстуры (+50): 0</div>
+                    <div class="inventory-item" id="furs"><i class="fas fa-paw"></i> Шкуры: 0</div>
+                    <div class="inventory-item" id="potions-small"><i class="fas fa-flask"></i> Микстуры (+20): 0</div>
+                    <div class="inventory-item" id="potions-large"><i class="fas fa-wine-bottle"></i> Микстуры (+50): 0</div>
                 </div>
             </div>
         </div>
         
-        <div class="game-board" id="game-board"></div>
-    </div>
-    
-    <div class="controls">
-        <p>Используйте стрелки на клавиатуре для перемещения</p>
-        <p>Каждый шаг может привести к неожиданным событиям!</p>
-    </div>
-    
-    <!-- Модальное окно для микстур -->
-    <div class="modal" id="potion-modal">
-        <div class="modal-content">
-            <h2 class="modal-title">Вы наступили на новую клетку</h2>
-            <p class="event-description">Вы можете выпить микстуру для восстановления здоровья:</p>
-            <div class="modal-buttons">
-                <button class="btn btn-drink" id="drink-small">Выпить микстуру (+20 HP)</button>
-                <button class="btn btn-drink" id="drink-large">Выпить микстуру (+50 HP)</button>
-                <button class="btn btn-continue" id="continue">Продолжить без микстуры</button>
+        <div class="game-area">
+            <div class="game-board" id="game-board"></div>
+            
+            <!-- Мобильные элементы управления -->
+            <div class="mobile-controls">
+                <button class="control-btn up" id="up-btn"><i class="fas fa-arrow-up"></i></button>
+                <button class="control-btn down" id="down-btn"><i class="fas fa-arrow-down"></i></button>
+                <button class="control-btn left" id="left-btn"><i class="fas fa-arrow-left"></i></button>
+                <button class="control-btn right" id="right-btn"><i class="fas fa-arrow-right"></i></button>
+            </div>
+            
+            <div class="controls-info">
+                <span class="desktop-info">Используйте стрелки на клавиатуре для перемещения</span>
+                <span class="mobile-info">Используйте кнопки управления для перемещения</span>
+                <p>Каждый шаг может привести к неожиданным событиям!</p>
             </div>
         </div>
     </div>
     
-    <!-- Модальное окно для боя -->
+    <!-- Модальные окна -->
+    <div class="modal" id="potion-modal">
+        <div class="modal-content">
+            <h2 class="modal-title"><i class="fas fa-wine-bottle"></i> Новая клетка</h2>
+            <p class="event-description">Вы можете выпить микстуру для восстановления здоровья:</p>
+            <div class="modal-buttons">
+                <button class="btn btn-drink" id="drink-small"><i class="fas fa-flask"></i> Микстура (+20 HP)</button>
+                <button class="btn btn-drink" id="drink-large"><i class="fas fa-wine-bottle"></i> Микстура (+50 HP)</button>
+                <button class="btn btn-continue" id="continue"><i class="fas fa-walking"></i> Продолжить</button>
+            </div>
+        </div>
+    </div>
+    
     <div class="modal" id="combat-modal">
         <div class="modal-content">
-            <h2 class="modal-title">На вас напал дикий зверь!</h2>
+            <h2 class="modal-title"><i class="fas fa-fist-raised"></i> Нападение зверя!</h2>
             <div class="combat-animation">
                 <div class="combatant">
-                    <div class="player-icon">🧙‍♂️</div>
+                    <div class="combatant-icon">🧙‍♂️</div>
                     <p>Игрок</p>
                 </div>
                 <div class="swords">⚔️</div>
                 <div class="combatant">
-                    <div class="enemy-icon" id="enemy-icon">🐺</div>
+                    <div class="combatant-icon" id="enemy-icon">🐺</div>
                     <p id="enemy-name">Волк</p>
                 </div>
             </div>
             <div class="combat-log" id="combat-log"></div>
-            <button class="btn" id="combat-continue">Продолжить</button>
+            <button class="btn" id="combat-continue"><i class="fas fa-forward"></i> Продолжить</button>
         </div>
     </div>
     
-    <!-- Модальное окно для торговца -->
     <div class="modal" id="merchant-modal">
         <div class="modal-content">
-            <h2 class="modal-title">Вы встретили торговца</h2>
+            <h2 class="modal-title"><i class="fas fa-coins"></i> Встреча с торговцем</h2>
             <p class="event-description">Что вы хотите сделать?</p>
             
             <div class="merchant-items">
                 <div class="merchant-item">
-                    <h4>Нож</h4>
+                    <h4><i class="fas fa-knife-kitchen"></i> Нож</h4>
                     <p>+5 урона</p>
-                    <p>+15% шанс критического удара</p>
+                    <p>+15% шанс крита</p>
                     <p class="item-price">40 монет</p>
                     <button class="btn btn-buy" data-item="knife">Купить</button>
                 </div>
                 <div class="merchant-item">
-                    <h4>Меч</h4>
+                    <h4><i class="fas fa-sword"></i> Меч</h4>
                     <p>+15 урона</p>
                     <p class="item-price">40 монет</p>
                     <button class="btn btn-buy" data-item="sword">Купить</button>
                 </div>
                 <div class="merchant-item">
-                    <h4>Молот</h4>
+                    <h4><i class="fas fa-hammer"></i> Молот</h4>
                     <p>+10 урона</p>
-                    <p>15% шанс оглушить противника</p>
+                    <p>15% шанс оглушения</p>
                     <p class="item-price">60 монет</p>
                     <button class="btn btn-buy" data-item="hammer">Купить</button>
                 </div>
                 <div class="merchant-item">
-                    <h4>Микстура здоровья (+20)</h4>
+                    <h4><i class="fas fa-flask"></i> Микстура (+20)</h4>
                     <p>Восстанавливает 20 здоровья</p>
                     <p class="item-price">2 монеты</p>
                     <button class="btn btn-buy" data-item="potion-small">Купить</button>
                 </div>
                 <div class="merchant-item">
-                    <h4>Микстура здоровья (+50)</h4>
+                    <h4><i class="fas fa-wine-bottle"></i> Микстура (+50)</h4>
                     <p>Восстанавливает 50 здоровья</p>
-                    <p class="item-price">5 монеты</p>
+                    <p class="item-price">5 монет</p>
                     <button class="btn btn-buy" data-item="potion-large">Купить</button>
                 </div>
                 <div class="merchant-item">
-                    <h4>Продать шкуры</h4>
-                    <p>Продать все шкуры по 5 монет за штуку</p>
+                    <h4><i class="fas fa-paw"></i> Продать шкуры</h4>
+                    <p>5 монет за штуку</p>
                     <button class="btn btn-sell" id="sell-furs">Продать</button>
                 </div>
             </div>
             
-            <button class="btn btn-continue" id="merchant-continue">Уйти</button>
+            <button class="btn btn-continue" id="merchant-continue"><i class="fas fa-sign-out-alt"></i> Уйти</button>
         </div>
     </div>
     
-    <!-- Модальное окно для реликвии -->
     <div class="modal" id="relic-modal">
         <div class="modal-content">
-            <h2 class="modal-title">Победа!</h2>
+            <h2 class="modal-title"><i class="fas fa-trophy"></i> Победа!</h2>
             <p class="event-description">Вы нашли священную реликвию! Ваше путешествие увенчалось успехом!</p>
             <div class="relic-image">🏆</div>
-            <button class="btn" id="restart">Играть снова</button>
+            <button class="btn" id="restart"><i class="fas fa-redo"></i> Играть снова</button>
         </div>
     </div>
     
-    <!-- Модальное окно для ничего не случилось -->
     <div class="modal" id="nothing-modal">
         <div class="modal-content">
-            <h2 class="modal-title">Ничего не произошло</h2>
+            <h2 class="modal-title"><i class="fas fa-wind"></i> Ничего не произошло</h2>
             <p class="event-description">Вы осторожно продвигаетесь дальше, но вокруг тишина...</p>
-            <button class="btn" id="nothing-continue">Продолжить</button>
+            <button class="btn" id="nothing-continue"><i class="fas fa-forward"></i> Продолжить</button>
         </div>
     </div>
 
@@ -971,7 +1113,13 @@
             }
         });
         
-        // Назначение обработчиков событий
+        // Назначение обработчиков событий для мобильных кнопок
+        document.getElementById('up-btn').addEventListener('click', () => movePlayer(0, -1));
+        document.getElementById('down-btn').addEventListener('click', () => movePlayer(0, 1));
+        document.getElementById('left-btn').addEventListener('click', () => movePlayer(-1, 0));
+        document.getElementById('right-btn').addEventListener('click', () => movePlayer(1, 0));
+        
+        // Назначение обработчиков событий для модальных окон
         document.getElementById('drink-small').addEventListener('click', () => {
             if (drinkPotion('small')) {
                 hideModal(potionModal);
