@@ -237,12 +237,12 @@
     </div>
 
     <div id="calendar-tab" class="tab-content">
-      <h1>Календарь</h1>
       <div class="calendar-header">
         <button class="calendar-nav-btn" onclick="previousMonth()">&#8249;</button>
         <h2 id="calendar-month-year"></h2>
         <button class="calendar-nav-btn" onclick="nextMonth()">&#8250;</button>
       </div>
+      <button class="btn" onclick="openNewTaskModal()" style="width: 100%; margin-bottom: 16px;">+ Новая задача</button>
       <div class="calendar-grid" id="calendar-grid"></div>
       <div id="selected-day-tasks" style="margin-top: 20px;"></div>
     </div>
@@ -469,12 +469,12 @@
       const container = document.getElementById('selected-day-tasks');
       if (!selectedDate) { container.innerHTML = ''; return; }
       const dayTasks = appData.tasks.filter(t => t.date === selectedDate);
-      if (dayTasks.length === 0) {
-        container.innerHTML = '<p style="text-align: center; opacity: 0.6; padding: 20px;">Нет задач на ' + formatDate(new Date(selectedDate)) + '</p>';
-        return;
-      }
       let html = '<h3>Задачи на ' + formatDate(new Date(selectedDate)) + '</h3>';
-      html += dayTasks.map(task => createTaskHTML(task)).join('');
+      if (dayTasks.length === 0) {
+        html += '<p style="text-align: center; opacity: 0.6; padding: 20px;">Нет задач на этот день</p>';
+      } else {
+        html += dayTasks.map(task => createTaskHTML(task)).join('');
+      }
       html += '<button class="btn" onclick="openNewTaskModalForDate(\'' + selectedDate + '\')">+ Добавить задачу</button>';
       container.innerHTML = html;
     }
