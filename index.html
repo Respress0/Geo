@@ -411,7 +411,10 @@
     function createTask() {
       const title = document.getElementById('task-title-input').value.trim();
       const date = document.getElementById('task-date-input').value;
-      if (!title) { alert('Введите название задачи'); return; }
+      if (!title) {
+        document.getElementById('task-title-input').focus();
+        return;
+      }
       appData.tasks.push({
         id: generateUUID(),
         title: title,
