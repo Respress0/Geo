@@ -1,1278 +1,531 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Охотник за реликвиями</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 15px;
-            color: #fff;
-            overflow-x: hidden;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 15px;
-            width: 100%;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            max-width: 800px;
-        }
-        
-        h1 {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-            color: #ffcc00;
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
-        }
-        
-        .game-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-            width: 100%;
-            max-width: 1000px;
-            position: relative;
-        }
-        
-        .stats-panel {
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 10px;
-            padding: 15px;
-            width: 100%;
-            max-width: 300px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            border: 2px solid #ffcc00;
-            z-index: 2;
-        }
-        
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #444;
-            font-size: 0.95rem;
-        }
-        
-        .stat-value {
-            font-weight: bold;
-            color: #ffcc00;
-        }
-        
-        .inventory {
-            margin-top: 15px;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 12px;
-            border-radius: 8px;
-        }
-        
-        .inventory h3 {
-            margin-bottom: 8px;
-            color: #ffcc00;
-            text-align: center;
-            font-size: 1.1rem;
-        }
-        
-        .inventory-items {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-        }
-        
-        .inventory-item {
-            background: rgba(50, 50, 150, 0.6);
-            padding: 6px 10px;
-            border-radius: 5px;
-            font-size: 0.85rem;
-            min-width: 120px;
-            text-align: center;
-        }
-        
-        .game-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            position: relative;
-        }
-        
-        .game-board {
-            display: grid;
-            grid-template-columns: repeat(9, minmax(25px, 35px));
-            grid-template-rows: repeat(9, minmax(25px, 35px));
-            gap: 1px;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 8px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            border: 2px solid #ffcc00;
-            max-width: 100%;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .cell {
-            aspect-ratio: 1/1;
-            background: #2c3e50;
-            border-radius: 3px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            position: relative;
-        }
-        
-        .cell.player {
-            background: #ffcc00;
-            box-shadow: 0 0 8px #ffcc00;
-            border-radius: 50%;
-            z-index: 2;
-        }
-        
-        .cell.visited {
-            background: #3498db;
-        }
-        
-        .cell.relic {
-            background: radial-gradient(circle, #ff00ff, #9900cc);
-            box-shadow: 0 0 8px #ff00ff;
-            animation: pulse 2s infinite;
-            z-index: 3;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        .mobile-controls {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            gap: 8px;
-            width: 180px;
-            height: 180px;
-            z-index: 1;
-            opacity: 0.7;
-            pointer-events: none;
-        }
-        
-        .control-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 204, 0, 0.3);
-            border-radius: 50%;
-            color: rgba(255, 204, 0, 0.8);
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 1px solid rgba(255, 204, 0, 0.5);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
-            pointer-events: auto;
-        }
-        
-        .control-btn:active {
-            transform: scale(0.95);
-            background: rgba(255, 215, 0, 0.5);
-        }
-        
-        .control-btn.up {
-            grid-column: 2;
-            grid-row: 1;
-        }
-        
-        .control-btn.down {
-            grid-column: 2;
-            grid-row: 3;
-        }
-        
-        .control-btn.left {
-            grid-column: 1;
-            grid-row: 2;
-        }
-        
-        .control-btn.right {
-            grid-column: 3;
-            grid-row: 2;
-        }
-        
-        .controls-info {
-            margin-top: 15px;
-            text-align: center;
-            color: #ccc;
-            font-size: 0.9rem;
-        }
-        
-        .controls-info .desktop-info {
-            display: block;
-        }
-        
-        .controls-info .mobile-info {
-            display: none;
-        }
-        
-        .map-info {
-            margin-top: 10px;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            text-align: center;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-        }
-        
-        .modal-content {
-            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
-            border: 3px solid #ffcc00;
-            border-radius: 12px;
-            padding: 20px;
-            width: 100%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 0 30px rgba(255, 204, 0, 0.5);
-            text-align: center;
-        }
-        
-        .modal-title {
-            color: #ffcc00;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-            text-shadow: 0 0 8px rgba(255, 204, 0, 0.7);
-        }
-        
-        .event-description {
-            margin: 15px 0;
-            font-size: 1rem;
-            line-height: 1.5;
-        }
-        
-        .combat-log {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 6px;
-            padding: 12px;
-            margin: 15px 0;
-            text-align: left;
-            max-height: 150px;
-            overflow-y: auto;
-            font-size: 0.9rem;
-        }
-        
-        .combat-entry {
-            margin: 6px 0;
-            padding: 4px;
-            border-bottom: 1px solid #444;
-        }
-        
-        .player-turn {
-            color: #00ff00;
-        }
-        
-        .enemy-turn {
-            color: #ff5555;
-        }
-        
-        .critical {
-            color: #ffcc00;
-            font-weight: bold;
-        }
-        
-        .stunned {
-            color: #55aaff;
-            font-weight: bold;
-        }
-        
-        .modal-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            margin-top: 15px;
-        }
-        
-        .btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 5px;
-            background: #ffcc00;
-            color: #1a2a6c;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 1rem;
-            min-width: 130px;
-            flex: 1;
-        }
-        
-        .btn:hover {
-            background: #ffd700;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(255, 204, 0, 0.4);
-        }
-        
-        .btn:active {
-            transform: translateY(1px);
-        }
-        
-        .btn-buy {
-            background: #27ae60;
-            color: white;
-        }
-        
-        .btn-sell {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        .btn-drink {
-            background: #3498db;
-            color: white;
-        }
-        
-        .btn-continue {
-            background: #9b59b6;
-            color: white;
-        }
-        
-        .merchant-items {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        .merchant-item {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #444;
-        }
-        
-        .merchant-item h4 {
-            color: #ffcc00;
-            margin-bottom: 8px;
-            font-size: 1rem;
-        }
-        
-        .item-price {
-            color: #27ae60;
-            font-weight: bold;
-            margin: 8px 0;
-            font-size: 0.9rem;
-        }
-        
-        .relic-image {
-            width: 150px;
-            height: 150px;
-            margin: 15px auto;
-            border-radius: 10px;
-            background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 4rem;
-            animation: rotate 10s infinite linear;
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.7);
-        }
-        
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .combat-animation {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            margin: 15px 0;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-        }
-        
-        .combatant {
-            text-align: center;
-        }
-        
-        .combatant-icon {
-            font-size: 3rem;
-            margin-bottom: 5px;
-        }
-        
-        .swords {
-            font-size: 2.5rem;
-            color: #ffcc00;
-            animation: clash 1s infinite alternate;
-        }
-        
-        @keyframes clash {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.1); }
-        }
-        
-        .merchant-header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            border-radius: 8px;
-        }
-        
-        .coins-display {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-        
-        .coins-icon {
-            color: #ffcc00;
-            font-size: 1.5rem;
-        }
-        
-        /* Адаптивность */
-        @media (max-width: 768px) {
-            .game-container {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .stats-panel {
-                max-width: 100%;
-            }
-            
-            h1 {
-                font-size: 1.5rem;
-            }
-            
-            .modal-content {
-                padding: 15px;
-            }
-            
-            .modal-title {
-                font-size: 1.3rem;
-            }
-            
-            .btn {
-                min-width: 100%;
-                padding: 15px;
-                font-size: 1.1rem;
-            }
-            
-            .merchant-items {
-                grid-template-columns: 1fr;
-            }
-            
-            .controls-info .desktop-info {
-                display: none;
-            }
-            
-            .controls-info .mobile-info {
-                display: block;
-            }
-            
-            .mobile-controls {
-                width: 150px;
-                height: 150px;
-            }
-            
-            .control-btn {
-                font-size: 1.2rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .game-board {
-                grid-template-columns: repeat(9, minmax(20px, 25px));
-                grid-template-rows: repeat(9, minmax(20px, 25px));
-            }
-            
-            .inventory-item {
-                min-width: 100px;
-                font-size: 0.8rem;
-            }
-            
-            .stat-item {
-                font-size: 0.9rem;
-            }
-            
-            .combatant-icon {
-                font-size: 2.5rem;
-            }
-            
-            .swords {
-                font-size: 2rem;
-            }
-            
-            .relic-image {
-                width: 120px;
-                height: 120px;
-                font-size: 3rem;
-            }
-            
-            .mobile-controls {
-                width: 120px;
-                height: 120px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мой Таск-Менеджер</title>
+  <style>
+    :root {
+      --bg-color: #FFF8F0;
+      --card-color: #F5E6D3;
+      --accent-color: #8B5A2B;
+      --text-color: #3E2723;
+      --border-radius: 16px;
+      --shadow: 0 4px 12px rgba(62, 39, 35, 0.1);
+      --completed-color: #4CAF50;
+      --overdue-color: #D32F2F;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #2C2C2C;
+      --card-color: #3E3E3E;
+      --accent-color: #D4A373;
+      --text-color: #F5F5F5;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      padding-bottom: 80px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    h1, h2, h3 { margin-bottom: 16px; color: var(--text-color); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .tab-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background-color: var(--card-color);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      z-index: 100;
+    }
+
+    .tab-btn {
+      background: none; border: none;
+      color: var(--text-color);
+      font-size: 14px;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .tab-btn.active { opacity: 1; font-weight: bold; color: var(--accent-color); }
+
+    .card {
+      background-color: var(--card-color);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform 0.2s;
+    }
+
+    .card:hover { transform: translateY(-2px); }
+
+    .task-checkbox { width: 24px; height: 24px; cursor: pointer; accent-color: var(--accent-color); }
+    .task-title { flex: 1; font-size: 16px; }
+    .task-title.completed { text-decoration: line-through; opacity: 0.6; }
+    .task-date { font-size: 12px; opacity: 0.7; margin-left: 8px; }
+
+    .delete-btn {
+      background: none; border: none;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+      font-size: 18px;
+    }
+
+    .delete-btn:hover { opacity: 1; }
+    .overdue { border: 2px solid var(--overdue-color); }
+    .overdue-text { color: var(--overdue-color); font-weight: bold; }
+
+    .btn {
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 12px;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover { opacity: 0.9; }
+    .btn-secondary { background-color: transparent; border: 2px solid var(--accent-color); color: var(--accent-color); }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background-color: var(--bg-color);
+      padding: 24px;
+      border-radius: var(--border-radius);
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .modal h2 { margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid var(--card-color);
+      border-radius: 8px;
+      font-size: 16px;
+      background-color: var(--card-color);
+      color: var(--text-color);
+    }
+
+    .modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
+    .modal-buttons .btn { flex: 1; margin-top: 0; }
+
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+    .calendar-nav-btn {
+      background: none; border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--accent-color);
+      padding: 8px;
+    }
+
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+
+    .calendar-day-name { text-align: center; font-weight: bold; font-size: 12px; padding: 8px; opacity: 0.7; }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--card-color);
+      border-radius: 8px;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.2s;
+    }
+
+    .calendar-day:hover { transform: scale(1.05); }
+    .calendar-day.selected { border: 2px solid var(--accent-color); }
+    .calendar-day.today { font-weight: bold; }
+    .calendar-day.empty { background: none; cursor: default; }
+    .calendar-day-number { font-size: 14px; }
+
+    .calendar-day-marker { font-size: 10px; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+    .marker-dot { width: 6px; height: 6px; border-radius: 50%; background-color: var(--accent-color); }
+    .marker-dot.completed { background-color: var(--completed-color); }
+
+    .settings-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background-color: var(--card-color);
+      border-radius: var(--border-radius);
+      margin-bottom: 12px;
+    }
+
+    .toggle-switch { position: relative; width: 60px; height: 30px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--accent-color);
+      transition: 0.3s;
+      border-radius: 30px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 24px;
+      width: 24px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider:before { transform: translateX(30px); }
+    .clear-data-btn { background-color: var(--overdue-color); margin-top: 20px; }
+
+    @media (max-width: 480px) {
+      .container { padding: 16px; }
+      .card { padding: 12px; }
+      .task-title { font-size: 14px; }
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1><i class="fas fa-crown"></i> Охотник за реликвиями</h1>
-        <p>Перемещайтесь по полю, сражайтесь с дикими зверями и найдите священную реликвию!</p>
-    </header>
-    
-    <div class="game-container">
-        <div class="stats-panel">
-            <h2><i class="fas fa-chart-bar"></i> Статистика игрока</h2>
-            <div class="stat-item">
-                <span><i class="fas fa-heart"></i> Здоровье:</span>
-                <span class="stat-value" id="health">100</span>
-            </div>
-            <div class="stat-item">
-                <span><i class="fas fa-bolt"></i> Урон:</span>
-                <span class="stat-value" id="damage">10</span>
-            </div>
-            <div class="stat-item">
-                <span><i class="fas fa-coins"></i> Монеты:</span>
-                <span class="stat-value" id="coins">20</span>
-            </div>
-            <div class="stat-item">
-                <span><i class="fas fa-shield-alt"></i> Оружие:</span>
-                <span class="stat-value" id="weapon">Нет</span>
-            </div>
-            
-            <div class="inventory">
-                <h3><i class="fas fa-backpack"></i> Инвентарь</h3>
-                <div class="inventory-items">
-                    <div class="inventory-item" id="furs"><i class="fas fa-paw"></i> Шкуры: 0</div>
-                    <div class="inventory-item" id="potions-small"><i class="fas fa-flask"></i> Микстуры (+20): 0</div>
-                    <div class="inventory-item" id="potions-large"><i class="fas fa-wine-bottle"></i> Микстуры (+50): 0</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="game-area">
-            <div class="game-board" id="game-board"></div>
-            
-            <!-- Полупрозрачные элементы управления -->
-            <div class="mobile-controls">
-                <button class="control-btn up" id="up-btn"><i class="fas fa-arrow-up"></i></button>
-                <button class="control-btn down" id="down-btn"><i class="fas fa-arrow-down"></i></button>
-                <button class="control-btn left" id="left-btn"><i class="fas fa-arrow-left"></i></button>
-                <button class="control-btn right" id="right-btn"><i class="fas fa-arrow-right"></i></button>
-            </div>
-            
-            <div class="map-info">
-                <i class="fas fa-binoculars"></i> Видимая область: 9×9 клеток
-            </div>
-            
-            <div class="controls-info">
-                <span class="mobile-info">Используйте кнопки управления для перемещения</span>
-                <p>Каждый шаг может привести к неожиданным событиям!</p>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Модальные окна -->
-    <div class="modal" id="potion-modal">
-        <div class="modal-content">
-            <h2 class="modal-title"><i class="fas fa-wine-bottle"></i> Новая клетка</h2>
-            <p class="event-description">Вы можете выпить микстуру для восстановления здоровья:</p>
-            <div class="modal-buttons">
-                <button class="btn btn-drink" id="drink-small"><i class="fas fa-flask"></i> Микстура (+20 HP)</button>
-                <button class="btn btn-drink" id="drink-large"><i class="fas fa-wine-bottle"></i> Микстура (+50 HP)</button>
-                <button class="btn btn-continue" id="continue"><i class="fas fa-walking"></i> Продолжить</button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="modal" id="combat-modal">
-        <div class="modal-content">
-            <h2 class="modal-title"><i class="fas fa-fist-raised"></i> Нападение зверя!</h2>
-            <div class="combat-animation">
-                <div class="combatant">
-                    <div class="combatant-icon">🧙‍♂️</div>
-                    <p>Игрок</p>
-                </div>
-                <div class="swords">⚔️</div>
-                <div class="combatant">
-                    <div class="combatant-icon" id="enemy-icon">🐺</div>
-                    <p id="enemy-name">Волк</p>
-                </div>
-            </div>
-            <div class="combat-log" id="combat-log"></div>
-            <button class="btn" id="combat-continue"><i class="fas fa-forward"></i> Продолжить</button>
-        </div>
-    </div>
-    
-    <div class="modal" id="merchant-modal">
-        <div class="modal-content">
-            <div class="merchant-header">
-                <h2 class="modal-title"><i class="fas fa-coins"></i> Встреча с торговцем</h2>
-                <div class="coins-display">
-                    <i class="fas fa-coins coins-icon"></i>
-                    <span id="merchant-coins">20</span>
-                </div>
-            </div>
-            <p class="event-description">Что вы хотите сделать?</p>
-            
-            <div class="merchant-items">
-                <div class="merchant-item">
-                    <h4><i class="fas fa-knife-kitchen"></i> Нож</h4>
-                    <p>+5 урона</p>
-                    <p>+15% шанс крита</p>
-                    <p class="item-price">40 монет</p>
-                    <button class="btn btn-buy" data-item="knife">Купить</button>
-                </div>
-                <div class="merchant-item">
-                    <h4><i class="fas fa-sword"></i> Меч</h4>
-                    <p>+15 урона</p>
-                    <p class="item-price">40 монет</p>
-                    <button class="btn btn-buy" data-item="sword">Купить</button>
-                </div>
-                <div class="merchant-item">
-                    <h4><i class="fas fa-hammer"></i> Молот</h4>
-                    <p>+10 урона</p>
-                    <p>15% шанс оглушения</p>
-                    <p class="item-price">60 монет</p>
-                    <button class="btn btn-buy" data-item="hammer">Купить</button>
-                </div>
-                <div class="merchant-item">
-                    <h4><i class="fas fa-flask"></i> Микстура (+20)</h4>
-                    <p>Восстанавливает 20 здоровья</p>
-                    <p class="item-price">2 монеты</p>
-                    <button class="btn btn-buy" data-item="potion-small">Купить</button>
-                </div>
-                <div class="merchant-item">
-                    <h4><i class="fas fa-wine-bottle"></i> Микстура (+50)</h4>
-                    <p>Восстанавливает 50 здоровья</p>
-                    <p class="item-price">5 монет</p>
-                    <button class="btn btn-buy" data-item="potion-large">Купить</button>
-                </div>
-                <div class="merchant-item">
-                    <h4><i class="fas fa-paw"></i> Продать шкуры</h4>
-                    <p>5 монет за штуку</p>
-                    <button class="btn btn-sell" id="sell-furs">Продать</button>
-                </div>
-            </div>
-            
-            <button class="btn btn-continue" id="merchant-continue"><i class="fas fa-sign-out-alt"></i> Уйти</button>
-        </div>
-    </div>
-    
-    <div class="modal" id="relic-modal">
-        <div class="modal-content">
-            <h2 class="modal-title"><i class="fas fa-trophy"></i> Победа!</h2>
-            <p class="event-description">Вы нашли священную реликвию! Ваше путешествие увенчалось успехом!</p>
-            <div class="relic-image">🏆</div>
-            <button class="btn" id="restart"><i class="fas fa-redo"></i> Играть снова</button>
-        </div>
-    </div>
-    
-    <div class="modal" id="nothing-modal">
-        <div class="modal-content">
-            <h2 class="modal-title"><i class="fas fa-wind"></i> Ничего не произошло</h2>
-            <p class="event-description">Вы осторожно продвигаетесь дальше, но вокруг тишина...</p>
-            <button class="btn" id="nothing-continue"><i class="fas fa-forward"></i> Продолжить</button>
-        </div>
+  <div class="container">
+    <div id="tasks-tab" class="tab-content active">
+      <h1 id="tasks-title">Задачи на сегодня</h1>
+      <button class="btn" onclick="openNewTaskModal()">+ Новая задача</button>
+      <div id="tasks-list" style="margin-top: 20px;"></div>
+      <button class="btn btn-secondary" onclick="clearCompletedTasks()" style="margin-top: 20px;">Очистить выполненные</button>
     </div>
 
-    <script>
-        // Игровые константы
-        const BOARD_SIZE = 25;
-        const VISIBLE_SIZE = 9; // Видимая область вокруг игрока
-        const PLAYER_START_HEALTH = 100;
-        const PLAYER_START_DAMAGE = 10;
-        const PLAYER_START_COINS = 20;
-        
-        // Вероятности событий
-        const NOTHING_CHANCE = 0.50;
-        const BEAST_CHANCE = 0.30;
-        const MERCHANT_CHANCE = 0.25;
-        const RELIC_CHANCE = 0.01;
-        
-        // Звери
-        const ENEMIES = {
-            wolf: {
-                name: "Волк",
-                icon: "🐺",
-                health: 40,
-                damage: 15,
-                critChance: 0,
-                stunChance: 0
-            },
-            fox: {
-                name: "Лиса",
-                icon: "🦊",
-                health: 30,
-                damage: 10,
-                critChance: 0.25,
-                stunChance: 0
-            },
-            bear: {
-                name: "Медведь",
-                icon: "🐻",
-                health: 50,
-                damage: 15,
-                critChance: 0,
-                stunChance: 0.20
-            }
-        };
-        
-        // Оружие
-        const WEAPONS = {
-            knife: {
-                name: "Нож",
-                damageBonus: 5,
-                critBonus: 0.15,
-                stunBonus: 0,
-                price: 40
-            },
-            sword: {
-                name: "Меч",
-                damageBonus: 15,
-                critBonus: 0,
-                stunBonus: 0,
-                price: 40
-            },
-            hammer: {
-                name: "Молот",
-                damageBonus: 10,
-                critBonus: 0,
-                stunBonus: 0.15,
-                price: 60
-            }
-        };
-        
-        // Состояние игры
-        const gameState = {
-            player: {
-                health: PLAYER_START_HEALTH,
-                baseDamage: PLAYER_START_DAMAGE,
-                damage: PLAYER_START_DAMAGE,
-                coins: PLAYER_START_COINS,
-                critChance: 0,
-                stunChance: 0,
-                position: { x: Math.floor(BOARD_SIZE / 2), y: Math.floor(BOARD_SIZE / 2) },
-                weapon: null,
-                furs: 0,
-                potions: {
-                    small: 0,
-                    large: 0
-                }
-            },
-            visitedCells: new Set(),
-            relicPosition: {
-                x: Math.floor(Math.random() * BOARD_SIZE),
-                y: Math.floor(Math.random() * BOARD_SIZE)
-            }
-        };
-        
-        // DOM элементы
-        const gameBoard = document.getElementById('game-board');
-        const healthElement = document.getElementById('health');
-        const damageElement = document.getElementById('damage');
-        const coinsElement = document.getElementById('coins');
-        const weaponElement = document.getElementById('weapon');
-        const fursElement = document.getElementById('furs');
-        const potionsSmallElement = document.getElementById('potions-small');
-        const potionsLargeElement = document.getElementById('potions-large');
-        const merchantCoinsElement = document.getElementById('merchant-coins');
-        
-        // Модальные окна
-        const potionModal = document.getElementById('potion-modal');
-        const combatModal = document.getElementById('combat-modal');
-        const merchantModal = document.getElementById('merchant-modal');
-        const relicModal = document.getElementById('relic-modal');
-        const nothingModal = document.getElementById('nothing-modal');
-        
-        // Инициализация игрового поля
-        function initGameBoard() {
-            gameBoard.innerHTML = '';
-            
-            // Создаем только видимую область 9x9
-            const startX = Math.max(0, gameState.player.position.x - Math.floor(VISIBLE_SIZE / 2));
-            const startY = Math.max(0, gameState.player.position.y - Math.floor(VISIBLE_SIZE / 2));
-            const endX = Math.min(BOARD_SIZE, startX + VISIBLE_SIZE);
-            const endY = Math.min(BOARD_SIZE, startY + VISIBLE_SIZE);
-            
-            for (let y = startY; y < endY; y++) {
-                for (let x = startX; x < endX; x++) {
-                    const cell = document.createElement('div');
-                    cell.classList.add('cell');
-                    cell.dataset.x = x;
-                    cell.dataset.y = y;
-                    
-                    // Отметка реликвии
-                    if (x === gameState.relicPosition.x && y === gameState.relicPosition.y) {
-                        cell.classList.add('relic');
-                    }
-                    
-                    // Пометить посещенные клетки
-                    if (gameState.visitedCells.has(`${x},${y}`)) {
-                        cell.classList.add('visited');
-                    }
-                    
-                    gameBoard.appendChild(cell);
-                }
-            }
-            
-            // Обновление позиции игрока
-            updatePlayerPosition();
+    <div id="calendar-tab" class="tab-content">
+      <h1>Календарь</h1>
+      <div class="calendar-header">
+        <button class="calendar-nav-btn" onclick="previousMonth()">&#8249;</button>
+        <h2 id="calendar-month-year"></h2>
+        <button class="calendar-nav-btn" onclick="nextMonth()">&#8250;</button>
+      </div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+      <div id="selected-day-tasks" style="margin-top: 20px;"></div>
+    </div>
+
+    <div id="settings-tab" class="tab-content">
+      <h1>Настройки</h1>
+      <div class="settings-item">
+        <span>Тёмная тема</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="theme-toggle" onchange="toggleTheme()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <button class="btn clear-data-btn" onclick="clearAllData()">Очистить все данные</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('tasks')">📋 Задачи</button>
+    <button class="tab-btn" onclick="switchTab('calendar')">📅 Календарь</button>
+    <button class="tab-btn" onclick="switchTab('settings')">⚙️ Настройки</button>
+  </div>
+
+  <div class="modal-overlay" id="new-task-modal">
+    <div class="modal">
+      <h2>Новая задача</h2>
+      <div class="form-group">
+        <label for="task-title-input">Название задачи *</label>
+        <input type="text" id="task-title-input" placeholder="Введите название">
+      </div>
+      <div class="form-group">
+        <label for="task-date-input">Дата</label>
+        <input type="date" id="task-date-input">
+      </div>
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="closeNewTaskModal()">Отмена</button>
+        <button class="btn" onclick="createTask()">Создать</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let appData = { tasks: [] };
+    let currentCalendarDate = new Date();
+    let selectedDate = null;
+
+    function init() {
+      loadData();
+      setupDemoTasks();
+      renderTasksTab();
+      renderCalendar();
+      loadTheme();
+      updateTasksTitle();
+    }
+
+    function loadData() {
+      const saved = localStorage.getItem('taskManagerData');
+      if (saved) appData = JSON.parse(saved);
+    }
+
+    function saveData() {
+      localStorage.setItem('taskManagerData', JSON.stringify(appData));
+    }
+
+    function setupDemoTasks() {
+      if (appData.tasks.length === 0) {
+        const today = new Date().toISOString().split('T')[0];
+        const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+        appData.tasks = [
+          { id: generateUUID(), title: 'Купить молоко', date: today, completed: false, createdAt: new Date().toISOString() },
+          { id: generateUUID(), title: 'Закончить проект', date: today, completed: true, createdAt: new Date().toISOString() },
+          { id: generateUUID(), title: 'Встреча с командой', date: tomorrow, completed: false, createdAt: new Date().toISOString() }
+        ];
+        saveData();
+      }
+    }
+
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabName + '-tab').classList.add('active');
+      event.target.classList.add('active');
+      if (tabName === 'tasks') { renderTasksTab(); updateTasksTitle(); }
+      else if (tabName === 'calendar') renderCalendar();
+    }
+
+    function updateTasksTitle() {
+      const today = new Date();
+      document.getElementById('tasks-title').textContent = 'Задачи на ' + formatDate(today);
+    }
+
+    function renderTasksTab() {
+      const today = new Date().toISOString().split('T')[0];
+      const tasksList = document.getElementById('tasks-list');
+      const todayTasks = appData.tasks.filter(task => task.date === today);
+      if (todayTasks.length === 0) {
+        tasksList.innerHTML = '<p style="text-align: center; opacity: 0.6; padding: 20px;">Нет задач на сегодня</p>';
+        return;
+      }
+      tasksList.innerHTML = todayTasks.map(task => createTaskHTML(task)).join('');
+    }
+
+    function createTaskHTML(task) {
+      const isOverdue = isTaskOverdue(task);
+      const overdueClass = isOverdue ? 'overdue' : '';
+      const completedClass = task.completed ? 'completed' : '';
+      const overdueText = isOverdue ? '<span class="overdue-text"> (Просрочено)</span>' : '';
+      return '<div class="card ' + overdueClass + '">' +
+        '<input type="checkbox" class="task-checkbox" ' + (task.completed ? 'checked' : '') + ' onchange="toggleTaskCompletion(\'' + task.id + '\')">' +
+        '<span class="task-title ' + completedClass + '">' + escapeHTML(task.title) + overdueText + '</span>' +
+        '<span class="task-date">' + formatDate(new Date(task.date)) + '</span>' +
+        '<button class="delete-btn" onclick="deleteTask(\'' + task.id + '\')">🗑️</button>' +
+        '</div>';
+    }
+
+    function toggleTaskCompletion(taskId) {
+      const task = appData.tasks.find(t => t.id === taskId);
+      if (task) {
+        task.completed = !task.completed;
+        saveData();
+        renderTasksTab();
+        renderCalendar();
+        if (selectedDate) renderSelectedDayTasks();
+      }
+    }
+
+    function deleteTask(taskId) {
+      appData.tasks = appData.tasks.filter(t => t.id !== taskId);
+      saveData();
+      renderTasksTab();
+      renderCalendar();
+      if (selectedDate) renderSelectedDayTasks();
+    }
+
+    function clearCompletedTasks() {
+      const today = new Date().toISOString().split('T')[0];
+      appData.tasks = appData.tasks.filter(task => !(task.date === today && task.completed));
+      saveData();
+      renderTasksTab();
+    }
+
+    function isTaskOverdue(task) {
+      const today = new Date().toISOString().split('T')[0];
+      return task.date < today && !task.completed;
+    }
+
+    function openNewTaskModal() {
+      document.getElementById('new-task-modal').classList.add('active');
+      document.getElementById('task-title-input').value = '';
+      document.getElementById('task-date-input').value = new Date().toISOString().split('T')[0];
+      document.getElementById('task-title-input').focus();
+    }
+
+    function closeNewTaskModal() {
+      document.getElementById('new-task-modal').classList.remove('active');
+    }
+
+    function createTask() {
+      const title = document.getElementById('task-title-input').value.trim();
+      const date = document.getElementById('task-date-input').value;
+      if (!title) { alert('Введите название задачи'); return; }
+      appData.tasks.push({
+        id: generateUUID(),
+        title: title,
+        date: date || new Date().toISOString().split('T')[0],
+        completed: false,
+        createdAt: new Date().toISOString()
+      });
+      saveData();
+      closeNewTaskModal();
+      renderTasksTab();
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById('calendar-grid');
+      const monthYear = document.getElementById('calendar-month-year');
+      const year = currentCalendarDate.getFullYear();
+      const month = currentCalendarDate.getMonth();
+      monthYear.textContent = new Date(year, month).toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startingDay = firstDay.getDay();
+      const totalDays = lastDay.getDate();
+      const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+      let html = dayNames.map(name => '<div class="calendar-day-name">' + name + '</div>').join('');
+      for (let i = 0; i < startingDay; i++) html += '<div class="calendar-day empty"></div>';
+      const today = new Date().toISOString().split('T')[0];
+      for (let day = 1; day <= totalDays; day++) {
+        const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+        const dayTasks = appData.tasks.filter(t => t.date === dateStr);
+        const completedTasks = dayTasks.filter(t => t.completed);
+        const isToday = dateStr === today;
+        const isSelected = selectedDate === dateStr;
+        let markerHTML = '';
+        if (dayTasks.length > 0) {
+          const allCompleted = completedTasks.length === dayTasks.length;
+          const markerClass = allCompleted ? 'completed' : '';
+          markerHTML = '<div class="calendar-day-marker"><span class="marker-dot ' + markerClass + '"></span><span>' + dayTasks.length + '</span></div>';
         }
-        
-        // Обновление позиции игрока
-        function updatePlayerPosition() {
-            // Сброс предыдущей позиции
-            document.querySelectorAll('.cell.player').forEach(cell => {
-                cell.classList.remove('player');
-            });
-            
-            // Установка новой позиции
-            const playerX = gameState.player.position.x;
-            const playerY = gameState.player.position.y;
-            
-            const playerCell = document.querySelector(`.cell[data-x="${playerX}"][data-y="${playerY}"]`);
-            if (playerCell) {
-                playerCell.classList.add('player');
-                
-                // Пометить клетку как посещенную
-                if (!playerCell.classList.contains('visited')) {
-                    playerCell.classList.add('visited');
-                    gameState.visitedCells.add(`${playerX},${playerY}`);
-                }
-            }
-        }
-        
-        // Обновление UI
-        function updateUI() {
-            healthElement.textContent = gameState.player.health;
-            damageElement.textContent = gameState.player.damage;
-            coinsElement.textContent = gameState.player.coins;
-            weaponElement.textContent = gameState.player.weapon ? WEAPONS[gameState.player.weapon].name : "Нет";
-            fursElement.textContent = `Шкуры: ${gameState.player.furs}`;
-            potionsSmallElement.textContent = `Микстуры (+20): ${gameState.player.potions.small}`;
-            potionsLargeElement.textContent = `Микстуры (+50): ${gameState.player.potions.large}`;
-            
-            // Обновление монет в окне торговца
-            if (merchantCoinsElement) {
-                merchantCoinsElement.textContent = gameState.player.coins;
-            }
-        }
-        
-        // Перемещение игрока
-        function movePlayer(dx, dy) {
-            const newX = gameState.player.position.x + dx;
-            const newY = gameState.player.position.y + dy;
-            
-            // Проверка границ поля
-            if (newX >= 0 && newX < BOARD_SIZE && newY >= 0 && newY < BOARD_SIZE) {
-                gameState.player.position.x = newX;
-                gameState.player.position.y = newY;
-                
-                // Перерисовка видимой области
-                initGameBoard();
-                
-                // Проверка на нахождение реликвии
-                if (newX === gameState.relicPosition.x && newY === gameState.relicPosition.y) {
-                    setTimeout(() => {
-                        showModal(relicModal);
-                    }, 300);
-                    return;
-                }
-                
-                // Показать окно микстур
-                setTimeout(() => {
-                    showModal(potionModal);
-                }, 300);
-            }
-        }
-        
-        // Обработка событий после шага
-        function processStepEvent() {
-            const rand = Math.random();
-            let eventType = 'nothing';
-            
-            if (rand < RELIC_CHANCE) {
-                // Реликвия обрабатывается при перемещении
-                return;
-            } else if (rand < RELIC_CHANCE + BEAST_CHANCE) {
-                eventType = 'beast';
-            } else if (rand < RELIC_CHANCE + BEAST_CHANCE + MERCHANT_CHANCE) {
-                eventType = 'merchant';
-            } else {
-                eventType = 'nothing';
-            }
-            
-            setTimeout(() => {
-                if (eventType === 'beast') {
-                    startCombat();
-                } else if (eventType === 'merchant') {
-                    showModal(merchantModal);
-                } else {
-                    showModal(nothingModal);
-                }
-            }, 300);
-        }
-        
-        // Начать бой
-        function startCombat() {
-            // Выбор случайного зверя
-            const enemyKeys = Object.keys(ENEMIES);
-            const enemyKey = enemyKeys[Math.floor(Math.random() * enemyKeys.length)];
-            const enemy = {...ENEMIES[enemyKey]};
-            
-            // Обновление UI врага
-            document.getElementById('enemy-icon').textContent = enemy.icon;
-            document.getElementById('enemy-name').textContent = enemy.name;
-            
-            // Очистка лога боя
-            const combatLog = document.getElementById('combat-log');
-            combatLog.innerHTML = '';
-            
-            // Симуляция боя
-            simulateCombat(enemy, combatLog);
-            
-            // Показать модальное окно боя
-            showModal(combatModal);
-        }
-        
-        // Симуляция боя
-        function simulateCombat(enemy, combatLog) {
-            let playerHealth = gameState.player.health;
-            let enemyHealth = enemy.health;
-            let playerStunned = false;
-            let enemyStunned = false;
-            
-            // Функция добавления записи в лог
-            function addLogEntry(message, type) {
-                const entry = document.createElement('div');
-                entry.classList.add('combat-entry', type);
-                entry.textContent = message;
-                combatLog.appendChild(entry);
-                combatLog.scrollTop = combatLog.scrollHeight;
-            }
-            
-            // Бой продолжается, пока кто-то не умрет
-            while (playerHealth > 0 && enemyHealth > 0) {
-                // Ход игрока, если не оглушен
-                if (!playerStunned) {
-                    let playerDamage = gameState.player.damage;
-                    let isCrit = false;
-                    
-                    // Проверка на критический удар
-                    if (Math.random() < gameState.player.critChance) {
-                        playerDamage = Math.floor(playerDamage * 1.5);
-                        isCrit = true;
-                    }
-                    
-                    enemyHealth -= playerDamage;
-                    
-                    if (isCrit) {
-                        addLogEntry(`Игрок наносит критический удар (${playerDamage} урона)!`, 'player-turn critical');
-                    } else {
-                        addLogEntry(`Игрок наносит ${playerDamage} урона.`, 'player-turn');
-                    }
-                    
-                    // Проверка на оглушение
-                    if (Math.random() < gameState.player.stunChance) {
-                        enemyStunned = true;
-                        addLogEntry(`Зверь оглушен!`, 'player-turn stunned');
-                    }
-                    
-                    // Проверка смерти врага
-                    if (enemyHealth <= 0) {
-                        addLogEntry(`Вы победили ${enemy.name}!`, 'player-turn');
-                        gameState.player.furs += 1;
-                        break;
-                    }
-                } else {
-                    addLogEntry(`Игрок оглушен и пропускает ход!`, 'player-turn stunned');
-                    playerStunned = false;
-                }
-                
-                // Ход зверя, если не оглушен
-                if (!enemyStunned) {
-                    let enemyDamage = enemy.damage;
-                    let isCrit = false;
-                    
-                    // Проверка на критический удар
-                    if (Math.random() < enemy.critChance) {
-                        enemyDamage = Math.floor(enemyDamage * 1.5);
-                        isCrit = true;
-                    }
-                    
-                    playerHealth -= enemyDamage;
-                    
-                    if (isCrit) {
-                        addLogEntry(`${enemy.name} наносит критический удар (${enemyDamage} урона)!`, 'enemy-turn critical');
-                    } else {
-                        addLogEntry(`${enemy.name} наносит ${enemyDamage} урона.`, 'enemy-turn');
-                    }
-                    
-                    // Проверка на оглушение
-                    if (Math.random() < enemy.stunChance) {
-                        playerStunned = true;
-                        addLogEntry(`Игрок оглушен!`, 'enemy-turn stunned');
-                    }
-                    
-                    // Проверка смерти игрока
-                    if (playerHealth <= 0) {
-                        addLogEntry(`Вы были побеждены ${enemy.name}!`, 'enemy-turn');
-                        break;
-                    }
-                } else {
-                    addLogEntry(`${enemy.name} оглушен и пропускает ход!`, 'enemy-turn stunned');
-                    enemyStunned = false;
-                }
-            }
-            
-            // Обновление здоровья игрока
-            gameState.player.health = Math.max(0, playerHealth);
-            updateUI();
-        }
-        
-        // Покупка предмета у торговца
-        function buyItem(item) {
-            if (item === 'knife' || item === 'sword' || item === 'hammer') {
-                const weapon = WEAPONS[item];
-                if (gameState.player.coins >= weapon.price) {
-                    gameState.player.coins -= weapon.price;
-                    gameState.player.weapon = item;
-                    gameState.player.damage = gameState.player.baseDamage + weapon.damageBonus;
-                    gameState.player.critChance = weapon.critBonus;
-                    gameState.player.stunChance = weapon.stunBonus;
-                    updateUI();
-                    alert(`Вы купили ${weapon.name}!`);
-                } else {
-                    alert('Недостаточно монет!');
-                }
-            } else if (item === 'potion-small') {
-                if (gameState.player.coins >= 2) {
-                    gameState.player.coins -= 2;
-                    gameState.player.potions.small += 1;
-                    updateUI();
-                    alert('Вы купили микстуру здоровья (+20)!');
-                } else {
-                    alert('Недостаточно монет!');
-                }
-            } else if (item === 'potion-large') {
-                if (gameState.player.coins >= 5) {
-                    gameState.player.coins -= 5;
-                    gameState.player.potions.large += 1;
-                    updateUI();
-                    alert('Вы купили микстуру здоровья (+50)!');
-                } else {
-                    alert('Недостаточно монет!');
-                }
-            }
-        }
-        
-        // Продажа шкур
-        function sellFurs() {
-            if (gameState.player.furs > 0) {
-                const total = gameState.player.furs * 5;
-                gameState.player.coins += total;
-                gameState.player.furs = 0;
-                updateUI();
-                alert(`Вы продали шкуры за ${total} монет!`);
-            } else {
-                alert('У вас нет шкур для продажи!');
-            }
-        }
-        
-        // Выпить микстуру
-        function drinkPotion(type) {
-            if (type === 'small' && gameState.player.potions.small > 0) {
-                gameState.player.health = Math.min(100, gameState.player.health + 20);
-                gameState.player.potions.small -= 1;
-            } else if (type === 'large' && gameState.player.potions.large > 0) {
-                gameState.player.health = Math.min(100, gameState.player.health + 50);
-                gameState.player.potions.large -= 1;
-            } else {
-                alert('У вас нет микстур этого типа!');
-                return false;
-            }
-            
-            updateUI();
-            return true;
-        }
-        
-        // Показать модальное окно
-        function showModal(modal) {
-            modal.style.display = 'flex';
-            // Обновляем монеты при открытии торговца
-            if (modal === merchantModal) {
-                merchantCoinsElement.textContent = gameState.player.coins;
-            }
-        }
-        
-        // Скрыть модальное окно
-        function hideModal(modal) {
-            modal.style.display = 'none';
-        }
-        
-        // Перезапуск игры
-        function restartGame() {
-            gameState.player.health = PLAYER_START_HEALTH;
-            gameState.player.damage = PLAYER_START_DAMAGE;
-            gameState.player.coins = PLAYER_START_COINS;
-            gameState.player.critChance = 0;
-            gameState.player.stunChance = 0;
-            gameState.player.weapon = null;
-            gameState.player.furs = 0;
-            gameState.player.potions.small = 0;
-            gameState.player.potions.large = 0;
-            gameState.player.position = { x: Math.floor(BOARD_SIZE / 2), y: Math.floor(BOARD_SIZE / 2) };
-            gameState.visitedCells.clear();
-            
-            // Генерация новой позиции реликвии
-            gameState.relicPosition = {
-                x: Math.floor(Math.random() * BOARD_SIZE),
-                y: Math.floor(Math.random() * BOARD_SIZE)
-            };
-            
-            initGameBoard();
-            updateUI();
-            
-            // Скрыть все модальные окна
-            hideModal(potionModal);
-            hideModal(combatModal);
-            hideModal(merchantModal);
-            hideModal(relicModal);
-            hideModal(nothingModal);
-        }
-        
-        // Обработка нажатия клавиш
-        document.addEventListener('keydown', (e) => {
-            if (document.querySelector('.modal[style*="display: flex"]')) {
-                return; // Не обрабатывать клавиши, когда открыто модальное окно
-            }
-            
-            switch(e.key) {
-                case 'ArrowUp':
-                    movePlayer(0, -1);
-                    break;
-                case 'ArrowDown':
-                    movePlayer(0, 1);
-                    break;
-                case 'ArrowLeft':
-                    movePlayer(-1, 0);
-                    break;
-                case 'ArrowRight':
-                    movePlayer(1, 0);
-                    break;
-            }
-        });
-        
-        // Назначение обработчиков событий для мобильных кнопок
-        document.getElementById('up-btn').addEventListener('click', () => movePlayer(0, -1));
-        document.getElementById('down-btn').addEventListener('click', () => movePlayer(0, 1));
-        document.getElementById('left-btn').addEventListener('click', () => movePlayer(-1, 0));
-        document.getElementById('right-btn').addEventListener('click', () => movePlayer(1, 0));
-        
-        // Назначение обработчиков событий для модальных окон
-        document.getElementById('drink-small').addEventListener('click', () => {
-            if (drinkPotion('small')) {
-                hideModal(potionModal);
-                processStepEvent();
-            }
-        });
-        
-        document.getElementById('drink-large').addEventListener('click', () => {
-            if (drinkPotion('large')) {
-                hideModal(potionModal);
-                processStepEvent();
-            }
-        });
-        
-        document.getElementById('continue').addEventListener('click', () => {
-            hideModal(potionModal);
-            processStepEvent();
-        });
-        
-        document.getElementById('combat-continue').addEventListener('click', () => {
-            hideModal(combatModal);
-            
-            // Проверка смерти игрока
-            if (gameState.player.health <= 0) {
-                alert('Вы погибли! Игра начнется заново.');
-                restartGame();
-            }
-        });
-        
-        document.querySelectorAll('.btn-buy').forEach(button => {
-            button.addEventListener('click', () => {
-                const item = button.dataset.item;
-                buyItem(item);
-            });
-        });
-        
-        document.getElementById('sell-furs').addEventListener('click', () => {
-            sellFurs();
-        });
-        
-        document.getElementById('merchant-continue').addEventListener('click', () => {
-            hideModal(merchantModal);
-        });
-        
-        document.getElementById('restart').addEventListener('click', () => {
-            restartGame();
-        });
-        
-        document.getElementById('nothing-continue').addEventListener('click', () => {
-            hideModal(nothingModal);
-        });
-        
-        // Инициализация игры
-        initGameBoard();
-        updateUI();
-    </script>
+        html += '<div class="calendar-day ' + (isToday ? 'today' : '') + ' ' + (isSelected ? 'selected' : '') + '" onclick="selectDate(\'' + dateStr + '\')">' +
+          '<span class="calendar-day-number">' + day + '</span>' + markerHTML + '</div>';
+      }
+      grid.innerHTML = html;
+      if (selectedDate) renderSelectedDayTasks();
+    }
+
+    function previousMonth() { currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1); renderCalendar(); }
+    function nextMonth() { currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1); renderCalendar(); }
+    function selectDate(dateStr) { selectedDate = dateStr; renderCalendar(); }
+
+    function renderSelectedDayTasks() {
+      const container = document.getElementById('selected-day-tasks');
+      if (!selectedDate) { container.innerHTML = ''; return; }
+      const dayTasks = appData.tasks.filter(t => t.date === selectedDate);
+      if (dayTasks.length === 0) {
+        container.innerHTML = '<p style="text-align: center; opacity: 0.6; padding: 20px;">Нет задач на ' + formatDate(new Date(selectedDate)) + '</p>';
+        return;
+      }
+      let html = '<h3>Задачи на ' + formatDate(new Date(selectedDate)) + '</h3>';
+      html += dayTasks.map(task => createTaskHTML(task)).join('');
+      html += '<button class="btn" onclick="openNewTaskModalForDate(\'' + selectedDate + '\')">+ Добавить задачу</button>';
+      container.innerHTML = html;
+    }
+
+    function openNewTaskModalForDate(date) { openNewTaskModal(); document.getElementById('task-date-input').value = date; }
+
+    function loadTheme() {
+      const theme = localStorage.getItem('theme');
+      if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('theme-toggle').checked = true;
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.getElementById('theme-toggle').checked;
+      if (isDark) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+      }
+    }
+
+    function clearAllData() {
+      if (confirm('Вы уверены? Все задачи будут удалены безвозвратно.')) {
+        appData.tasks = [];
+        saveData();
+        renderTasksTab();
+        renderCalendar();
+        selectedDate = null;
+        document.getElementById('selected-day-tasks').innerHTML = '';
+        alert('Все данные очищены');
+      }
+    }
+
+    function formatDate(date) {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return day + '.' + month + '.' + year;
+    }
+
+    function escapeHTML(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    document.getElementById('task-title-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') createTask(); });
+    document.getElementById('new-task-modal').addEventListener('click', function(e) { if (e.target === this) closeNewTaskModal(); });
+
+    init();
+  </script>
 </body>
 </html>
