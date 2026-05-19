@@ -72,6 +72,25 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="task-detail-modal">
+    <div class="modal">
+      <h2 id="task-detail-title">Название задачи</h2>
+      <div class="task-detail-info">
+        <p id="task-detail-date"></p>
+        <p id="task-detail-time"></p>
+        <p id="task-detail-timer"></p>
+      </div>
+      <div id="timer-display" class="timer-display" style="display: none;">
+        <span class="timer-countdown" id="timer-countdown">00:00</span>
+      </div>
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="closeTaskDetailModal()">Закрыть</button>
+        <button class="btn" id="start-timer-btn" onclick="startTimer()" style="display: none;">▶️ Запустить таймер</button>
+        <button class="btn" id="stop-timer-btn" onclick="stopTimer()" style="display: none;">⏹️ Остановить</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
