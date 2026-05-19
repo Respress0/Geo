@@ -3,6 +3,7 @@ import json
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
+from flask import send_from_directory
 
 app = Flask(__name__, static_folder='.')
 CORS(app)
@@ -23,6 +24,10 @@ def init_db():
     ''')
     conn.commit()
     conn.close()
+
+@app.route('/manifest.json')
+def serve_manifest():
+    return send_from_directory('static', 'manifest.json')
 
 @app.route('/')
 def index():
