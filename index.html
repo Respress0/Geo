@@ -57,6 +57,14 @@
         <label for="task-date-input">Дата</label>
         <input type="date" id="task-date-input">
       </div>
+      <div class="form-group">
+        <label for="task-time-input">Время выполнения</label>
+        <input type="time" id="task-time-input">
+      </div>
+      <div class="form-group">
+        <label for="task-timer-input">Таймер (минуты)</label>
+        <input type="number" id="task-timer-input" placeholder="0" min="0">
+      </div>
       <div class="modal-buttons">
         <button class="btn btn-secondary" onclick="closeNewTaskModal()">Отмена</button>
         <button class="btn" onclick="createTask()">Создать</button>

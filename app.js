@@ -120,10 +120,13 @@ function createTaskHTML(task) {
   const overdueClass = isOverdue ? 'overdue' : '';
   const completedClass = task.completed ? 'completed' : '';
   const overdueText = isOverdue ? '<span class="overdue-text"> (Просрочено)</span>' : '';
+  const timeText = task.time ? `<span class="task-time">⏰ ${task.time}</span>` : '';
+  const timerText = task.timer_minutes > 0 ? `<span class="task-timer">⏱️ ${task.timer_minutes} мин</span>` : '';
   return '<div class="card ' + overdueClass + '">' +
     '<input type="checkbox" class="task-checkbox" ' + (task.completed ? 'checked' : '') + ' onchange="toggleTaskCompletion(\'' + task.id + '\')">' +
     '<span class="task-title ' + completedClass + '">' + escapeHTML(task.title) + overdueText + '</span>' +
     '<span class="task-date">' + formatDate(new Date(task.date)) + '</span>' +
+    timeText + timerText +
     '<button class="delete-btn" onclick="deleteTask(\'' + task.id + '\')">🗑️</button>' +
     '</div>';
 }
@@ -163,6 +166,8 @@ function openNewTaskModal() {
   document.getElementById('new-task-modal').classList.add('active');
   document.getElementById('task-title-input').value = '';
   document.getElementById('task-date-input').value = new Date().toISOString().split('T')[0];
+  document.getElementById('task-time-input').value = '';
+  document.getElementById('task-timer-input').value = '';
   document.getElementById('task-title-input').focus();
 }
 
@@ -173,6 +178,8 @@ function closeNewTaskModal() {
 function createTask() {
   const title = document.getElementById('task-title-input').value.trim();
   const date = document.getElementById('task-date-input').value;
+  const time = document.getElementById('task-time-input').value;
+  const timerMinutes = parseInt(document.getElementById('task-timer-input').value) || 0;
   if (!title) {
     document.getElementById('task-title-input').focus();
     return;
@@ -181,6 +188,8 @@ function createTask() {
     id: generateUUID(),
     title: title,
     date: date || new Date().toISOString().split('T')[0],
+    time: time || '',
+    timer_minutes: timerMinutes,
     completed: false,
     createdAt: new Date().toISOString()
   };
