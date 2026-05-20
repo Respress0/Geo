@@ -261,6 +261,9 @@ function loadTheme() {
   if (theme === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
     document.getElementById('theme-toggle').checked = true;
+    document.getElementById('theme-label').textContent = 'Светлая тема';
+  } else {
+    document.getElementById('theme-label').textContent = 'Тёмная тема';
   }
 }
 
@@ -269,9 +272,11 @@ function toggleTheme() {
   if (isDark) {
     document.documentElement.setAttribute('data-theme', 'dark');
     localStorage.setItem('theme', 'dark');
+    document.getElementById('theme-label').textContent = 'Светлая тема';
   } else {
     document.documentElement.removeAttribute('data-theme');
     localStorage.setItem('theme', 'light');
+    document.getElementById('theme-label').textContent = 'Тёмная тема';
   }
 }
 
