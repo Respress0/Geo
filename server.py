@@ -18,6 +18,8 @@ def init_db():
             id TEXT PRIMARY KEY,
             title TEXT NOT NULL,
             date TEXT NOT NULL,
+            time TEXT,
+            timer_minutes INTEGER DEFAULT 0,
             completed INTEGER DEFAULT 0,
             created_at TEXT NOT NULL
         )
@@ -60,8 +62,8 @@ def create_task():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute(
-        'INSERT INTO tasks (id, title, date, completed, created_at) VALUES (?, ?, ?, ?, ?)',
-        (data['id'], data['title'], data['date'], 1 if data['completed'] else 0, data['createdAt'])
+        'INSERT INTO tasks (id, title, date, time, timer_minutes, completed, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        (data['id'], data['title'], data['date'], data.get('time', ''), data.get('timer_minutes', 0), 1 if data['completed'] else 0, data['createdAt'])
     )
     conn.commit()
     conn.close()
@@ -73,8 +75,8 @@ def update_task(task_id):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute(
-        'UPDATE tasks SET title=?, date=?, completed=? WHERE id=?',
-        (data['title'], data['date'], 1 if data['completed'] else 0, task_id)
+        'UPDATE tasks SET title=?, date=?, time=?, timer_minutes=?, completed=? WHERE id=?',
+        (data['title'], data['date'], data.get('time', ''), data.get('timer_minutes', 0), 1 if data['completed'] else 0, task_id)
     )
     conn.commit()
     conn.close()

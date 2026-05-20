@@ -1,6 +1,9 @@
 let appData = { tasks: [] };
 let currentCalendarDate = new Date();
 let selectedDate = null;
+let currentTask = null;
+let timerInterval = null;
+let timerSecondsRemaining = 0;
 
 const API_BASE = '/api';
 
@@ -120,11 +123,14 @@ function createTaskHTML(task) {
   const overdueClass = isOverdue ? 'overdue' : '';
   const completedClass = task.completed ? 'completed' : '';
   const overdueText = isOverdue ? '<span class="overdue-text"> (Просрочено)</span>' : '';
-  return '<div class="card ' + overdueClass + '">' +
-    '<input type="checkbox" class="task-checkbox" ' + (task.completed ? 'checked' : '') + ' onchange="toggleTaskCompletion(\'' + task.id + '\')">' +
+  const timeText = task.time ? `<span class="task-time">⏰ ${task.time}</span>` : '';
+  const timerText = task.timer_minutes > 0 ? `<span class="task-timer">⏱️ ${task.timer_minutes} мин</span>` : '';
+  return '<div class="card ' + overdueClass + '" onclick="openTaskDetailModal(\'' + task.id + '\')">' +
+    '<input type="checkbox" class="task-checkbox" ' + (task.completed ? 'checked' : '') + ' onclick="event.stopPropagation(); toggleTaskCompletion(\'' + task.id + '\')">' +
     '<span class="task-title ' + completedClass + '">' + escapeHTML(task.title) + overdueText + '</span>' +
     '<span class="task-date">' + formatDate(new Date(task.date)) + '</span>' +
-    '<button class="delete-btn" onclick="deleteTask(\'' + task.id + '\')">🗑️</button>' +
+    timeText + timerText +
+    '<button class="delete-btn" onclick="event.stopPropagation(); deleteTask(\'' + task.id + '\')">🗑️</button>' +
     '</div>';
 }
 
@@ -163,6 +169,8 @@ function openNewTaskModal() {
   document.getElementById('new-task-modal').classList.add('active');
   document.getElementById('task-title-input').value = '';
   document.getElementById('task-date-input').value = new Date().toISOString().split('T')[0];
+  document.getElementById('task-time-input').value = '';
+  document.getElementById('task-timer-input').value = '';
   document.getElementById('task-title-input').focus();
 }
 
@@ -173,6 +181,8 @@ function closeNewTaskModal() {
 function createTask() {
   const title = document.getElementById('task-title-input').value.trim();
   const date = document.getElementById('task-date-input').value;
+  const time = document.getElementById('task-time-input').value;
+  const timerMinutes = parseInt(document.getElementById('task-timer-input').value) || 0;
   if (!title) {
     document.getElementById('task-title-input').focus();
     return;
@@ -181,6 +191,8 @@ function createTask() {
     id: generateUUID(),
     title: title,
     date: date || new Date().toISOString().split('T')[0],
+    time: time || '',
+    timer_minutes: timerMinutes,
     completed: false,
     createdAt: new Date().toISOString()
   };
@@ -288,7 +300,96 @@ function escapeHTML(str) {
   return div.innerHTML;
 }
 
+function openTaskDetailModal(taskId) {
+  const task = appData.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  
+  currentTask = task;
+  
+  document.getElementById('task-detail-title').textContent = task.title;
+  document.getElementById('task-detail-date').textContent = 'Дата: ' + formatDate(new Date(task.date));
+  document.getElementById('task-detail-time').textContent = task.time ? 'Время: ' + task.time : '';
+  document.getElementById('task-detail-timer').textContent = task.timer_minutes > 0 ? 'Таймер: ' + task.timer_minutes + ' мин' : '';
+  
+  const startTimerBtn = document.getElementById('start-timer-btn');
+  const stopTimerBtn = document.getElementById('stop-timer-btn');
+  const timerDisplay = document.getElementById('timer-display');
+  
+  if (task.timer_minutes > 0 && !task.completed) {
+    startTimerBtn.style.display = 'inline-block';
+    stopTimerBtn.style.display = 'none';
+    timerDisplay.style.display = 'none';
+  } else {
+    startTimerBtn.style.display = 'none';
+    stopTimerBtn.style.display = 'none';
+    timerDisplay.style.display = 'none';
+  }
+  
+  document.getElementById('task-detail-modal').classList.add('active');
+}
+
+function closeTaskDetailModal() {
+  document.getElementById('task-detail-modal').classList.remove('active');
+  stopTimer();
+  currentTask = null;
+}
+
+function startTimer() {
+  if (!currentTask || currentTask.timer_minutes <= 0) return;
+  
+  timerSecondsRemaining = currentTask.timer_minutes * 60;
+  
+  document.getElementById('timer-display').style.display = 'block';
+  document.getElementById('start-timer-btn').style.display = 'none';
+  document.getElementById('stop-timer-btn').style.display = 'inline-block';
+  
+  updateTimerDisplay();
+  
+  timerInterval = setInterval(() => {
+    timerSecondsRemaining--;
+    updateTimerDisplay();
+    
+    if (timerSecondsRemaining <= 0) {
+      clearInterval(timerInterval);
+      timerFinished();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  document.getElementById('timer-display').style.display = 'none';
+  document.getElementById('start-timer-btn').style.display = 'none';
+  document.getElementById('stop-timer-btn').style.display = 'none';
+}
+
+function updateTimerDisplay() {
+  const minutes = Math.floor(timerSecondsRemaining / 60);
+  const seconds = timerSecondsRemaining % 60;
+  const displayStr = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+  document.getElementById('timer-countdown').textContent = displayStr;
+}
+
+function timerFinished() {
+  alert('Таймер завершен! Задача автоматически помечается как выполненная.');
+  
+  if (currentTask) {
+    currentTask.completed = true;
+    updateTaskInDB(currentTask.id, currentTask);
+    renderTasksTab();
+    renderCalendar();
+    if (selectedDate) renderSelectedDayTasks();
+  }
+  
+  stopTimer();
+  closeTaskDetailModal();
+}
+
 document.getElementById('task-title-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') createTask(); });
 document.getElementById('new-task-modal').addEventListener('click', function(e) { if (e.target === this) closeNewTaskModal(); });
+document.getElementById('task-detail-modal').addEventListener('click', function(e) { if (e.target === this) closeTaskDetailModal(); });
 
 init();
