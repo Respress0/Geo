@@ -1,70 +1,53 @@
-```gitignore
-# Compiled and build artifacts
-*.pyc
-__pycache__/
-*.class
-*.o
-*.obj
-*.out
-dist/
-build/
-target/
-
+```
 # Dependencies
-node_modules/
-venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 .venv/
+venv/
+env/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Build artifacts
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment variables
 .env
 .env.local
-.env.*
+*.env.*
 
-# Logs and temp files
-*.log
-*.tmp
-*.swp
-*.swo
-
-# Editors
+# IDE and editor files
 .vscode/
 .idea/
-
-# System files
+*.swp
+*.swo
+*~
 .DS_Store
 Thumbs.db
 
-# Database
-tasks.db
+# Logs
+*.log
 
 # Coverage
+.coverage
 coverage/
 htmlcov/
-.coverage
-
-# MyPy
-.mypy_cache/
-
-# Pytest
-.pytest_cache/
-
-# Gradle
-.gradle/
-
-# Android build artifacts
-*.apk
-*.aar
-*.dex
-*.jar
-
-# Android IDE
-.gradle/
-local.properties
-.settings/
-bin/
-gen/
-out/
-
-# Temporary files
-*.tmp
-*~
-\#*\#
+.nyc_output/
 ```
