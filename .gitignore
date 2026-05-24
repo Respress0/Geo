@@ -1,12 +1,5 @@
 ```
-# Dependencies
-node_modules/
-
-# Editors
-.vscode/
-
-# Environment
-.env
-.env.local
-*.env.*
+# Security and configuration files
+SECURITY_FIX_RLS_AUTO_ENABLE.md
+fix_rls_auto_enable_security.sql
 ```
