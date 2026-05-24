@@ -1,6 +1,8 @@
 {
   "version": 2,
   "routes": [
+    { "src": "/static/(.*)", "dest": "/static/$1" },
+    { "src": "/\\.(css|js|json|png|jpg|ico|svg)$", "dest": "$0" },
     { "src": "/.*", "dest": "/index.html" }
   ]
 }

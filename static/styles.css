@@ -1,0 +1,249 @@
+:root {
+  --bg-color: #FFF8F0;
+  --card-color: #F5E6D3;
+  --accent-color: #8B5A2B;
+  --text-color: #3E2723;
+  --border-radius: 16px;
+  --shadow: 0 4px 12px rgba(62, 39, 35, 0.1);
+  --completed-color: #4CAF50;
+  --overdue-color: #D32F2F;
+}
+
+[data-theme="dark"] {
+  --bg-color: #2C2C2C;
+  --card-color: #3E3E3E;
+  --accent-color: #D4A373;
+  --text-color: #F5F5F5;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+  padding-bottom: 80px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.container { max-width: 600px; margin: 0 auto; padding: 20px; }
+h1, h2, h3 { margin-bottom: 16px; color: var(--text-color); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.tab-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background-color: var(--card-color);
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+.tab-btn {
+  background: none; border: none;
+  color: var(--text-color);
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.tab-btn.active { opacity: 1; font-weight: bold; color: var(--accent-color); }
+
+.card {
+  background-color: var(--card-color);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.2s;
+}
+
+.card:hover { transform: translateY(-2px); }
+
+.task-checkbox { width: 24px; height: 24px; cursor: pointer; accent-color: var(--accent-color); }
+.task-title { flex: 1; font-size: 16px; }
+.task-title.completed { text-decoration: line-through; opacity: 0.6; }
+.task-date { font-size: 12px; opacity: 0.7; margin-left: 8px; }
+.task-time { font-size: 12px; opacity: 0.8; margin-left: 8px; color: var(--accent-color); }
+.task-timer { font-size: 12px; opacity: 0.8; margin-left: 4px; color: var(--accent-color); }
+
+.delete-btn {
+  background: none; border: none;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  font-size: 18px;
+}
+
+.delete-btn:hover { opacity: 1; }
+.overdue { border: 2px solid var(--overdue-color); }
+.overdue-text { color: var(--overdue-color); font-weight: bold; }
+
+.btn {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--border-radius);
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 12px;
+  transition: opacity 0.2s;
+}
+
+.btn:hover { opacity: 0.9; }
+.btn-secondary { background-color: transparent; border: 2px solid var(--accent-color); color: var(--accent-color); }
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-overlay.active { display: flex; }
+
+.modal {
+  background-color: var(--bg-color);
+  padding: 24px;
+  border-radius: var(--border-radius);
+  width: 90%;
+  max-width: 400px;
+}
+
+.modal h2 { margin-bottom: 20px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid var(--card-color);
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: var(--card-color);
+  color: var(--text-color);
+}
+
+.modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
+.modal-buttons .btn { flex: 1; margin-top: 0; }
+
+.calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+.calendar-nav-btn {
+  background: none; border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--accent-color);
+  padding: 8px;
+}
+
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+
+.calendar-day-name { text-align: center; font-weight: bold; font-size: 12px; padding: 8px; opacity: 0.7; }
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--card-color);
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.2s;
+}
+
+.calendar-day:hover { transform: scale(1.05); }
+.calendar-day.selected { border: 2px solid var(--accent-color); }
+.calendar-day.today { font-weight: bold; }
+.calendar-day.empty { background: none; cursor: default; }
+.calendar-day-number { font-size: 14px; }
+
+.calendar-day-marker { font-size: 10px; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+.marker-dot { width: 6px; height: 6px; border-radius: 50%; background-color: var(--accent-color); }
+.marker-dot.completed { background-color: var(--completed-color); }
+
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: var(--card-color);
+  border-radius: var(--border-radius);
+  margin-bottom: 12px;
+}
+
+.toggle-switch { position: relative; width: 60px; height: 30px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--accent-color);
+  transition: 0.3s;
+  border-radius: 30px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 24px;
+  width: 24px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.toggle-slider:before { transform: translateX(30px); }
+.clear-data-btn { background-color: var(--overdue-color); margin-top: 20px; }
+
+.task-detail-info {
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: var(--card-color);
+  border-radius: 8px;
+}
+
+.task-detail-info p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.timer-display {
+  text-align: center;
+  padding: 20px;
+  margin: 16px 0;
+  background-color: var(--card-color);
+  border-radius: 8px;
+}
+
+.timer-countdown {
+  font-size: 48px;
+  font-weight: bold;
+  color: var(--accent-color);
+  font-family: monospace;
+}
+
+@media (max-width: 480px) {
+  .container { padding: 16px; }
+  .card { padding: 12px; }
+  .task-title { font-size: 14px; }
+}
