@@ -1,4 +1,12 @@
 ```
-# No build artifacts, dependencies, or temporary files detected in changes
-# Only source/config files present (.md, .sql, .py)
+# Dependencies
+node_modules/
+
+# Editors
+.vscode/
+
+# Environment
+.env
+.env.local
+*.env.*
 ```
