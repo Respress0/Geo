@@ -1,0 +1,4 @@
+# Requirements для работы с Supabase
+flask
+flask-cors
+supabase
