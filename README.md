@@ -1,40 +1,35 @@
 # Task Manager App
 
-Приложение для управления задачами с поддержкой календаря, тёмной темы и облачной базы данных Supabase.
+Приложение для управления задачами с поддержкой календаря, тёмной темы и локальной базы данных PostgreSQL.
 
 ## Структура проекта
 
 - `index.html` - HTML структура приложения
 - `styles.css` - CSS стили
 - `app.js` - JavaScript логика
-- `server.py` - Flask бэкенд с Supabase базой данных
-- `supabase_config.js` - Конфигурация Supabase
-- `supabase_schema.sql` - SQL схема для создания таблицы в Supabase
+- `server.py` - Flask бэкенд, использующий локальную PostgreSQL базу данных
 - `requirements.txt` - Python зависимости
 - `android_app/` - Android проект для сборки APK
 
 ## Запуск веб-версии
 
-### 1. Настройка Supabase
+### 1. Настройка локальной PostgreSQL
 
-1. Зарегистрируйтесь на [supabase.com](https://supabase.com)
-2. Создайте новый проект
-3. Перейдите в SQL Editor и выполните скрипт из `supabase_schema.sql`
-4. Получите credentials:
-   - Project URL (например: `https://xxxxx.supabase.co`)
-   - Anon/Public Key
+1. Установите PostgreSQL и создайте базу данных, например:
 
-5. Установите переменные окружения:
-   ```bash
-   export SUPABASE_URL='https://your-project-id.supabase.co'
-   export SUPABASE_KEY='your-anon-key'
-   ```
-   
-   Или создайте файл `.env`:
-   ```
-   SUPABASE_URL=https://your-project-id.supabase.co
-   SUPABASE_KEY=your-anon-key
-   ```
+```bash
+sudo -u postgres psql -c "CREATE DATABASE tasksdb;"
+sudo -u postgres psql -c "CREATE USER tasksuser WITH PASSWORD 'password';"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE tasksdb TO tasksuser;"
+```
+
+2. Установите переменную окружения `DATABASE_URL`, например:
+
+```bash
+export DATABASE_URL='postgresql://tasksuser:password@localhost:5432/tasksdb'
+```
+
+3. Сервер автоматически создаст таблицу `tasks` при старте.
 
 ### 2. Установка зависимостей
 
@@ -54,7 +49,7 @@ http://localhost:5000
 
 ## База данных
 
-Приложение использует **Supabase** (PostgreSQL) для хранения задач в облаке.
+Приложение использует локальную **PostgreSQL** базу данных для хранения задач.
 
 Таблица `tasks` содержит следующие поля:
 - `id` - уникальный идентификатор задачи (TEXT PRIMARY KEY)
@@ -65,14 +60,15 @@ http://localhost:5000
 - `completed` - статус выполнения (BOOLEAN)
 - `created_at` - дата создания (TEXT)
 
-### Миграция с SQLite на Supabase
+### Миграция с SQLite
 
-Если у вас есть данные в SQLite (`tasks.db`), вы можете экспортировать их и импортировать в Supabase:
+Если у вас есть данные в SQLite (`tasks.db`), вы можете экспортировать их и импортировать в PostgreSQL:
 
 ```python
 import sqlite3
-import json
-from supabase import create_client
+import psycopg2
+from psycopg2.extras import execute_values
+import os
 
 # Экспорт из SQLite
 conn = sqlite3.connect('tasks.db')
@@ -82,11 +78,13 @@ cursor.execute('SELECT * FROM tasks')
 tasks = [dict(row) for row in cursor.fetchall()]
 conn.close()
 
-# Импорт в Supabase
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-for task in tasks:
-    task['completed'] = bool(task['completed'])
-    supabase.table('tasks').insert(task).execute()
+# Импорт в Postgres
+DATABASE_URL = os.getenv('DATABASE_URL')
+with psycopg2.connect(DATABASE_URL) as pg:
+    with pg.cursor() as cur:
+        execute_values(cur, "INSERT INTO tasks (id,title,date,time,timer_minutes,completed,created_at,user_id) VALUES %s",
+            [(t['id'],t['title'],t['date'],t.get('time',''),t.get('timer_minutes',0),bool(t.get('completed',False)),t.get('createdAt'),t.get('user_id')) for t in tasks])
+        pg.commit()
 ```
 
 ## Сборка APK
@@ -120,5 +118,5 @@ for task in tasks:
 - ✅ Календарь с отображением задач по дням
 - ✅ Тёмная/светлая тема с динамическим переключением
 - ✅ Отображение просроченных задач
-- ✅ **Облачное хранение данных в Supabase**
-- ✅ Синхронизация между устройствами
+- ✅ Локальная PostgreSQL база данных
+- ✅ Возможна синхронизация при развертывании на общем сервере

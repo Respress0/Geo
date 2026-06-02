@@ -1,4 +1,4 @@
-# Requirements для работы с Supabase
+# Requirements для локальной PostgreSQL
 flask
 flask-cors
-supabase
+psycopg2-binary
