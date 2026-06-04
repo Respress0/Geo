@@ -169,7 +169,8 @@ function openNewTaskModal() {
   document.getElementById('new-task-modal').classList.add('active');
   document.getElementById('task-title-input').value = '';
   document.getElementById('task-date-input').value = new Date().toISOString().split('T')[0];
-  document.getElementById('task-time-input').value = '';
+  // по умолчанию ставим 00 часов
+  document.getElementById('task-time-input').value = '00:00';
   document.getElementById('task-timer-input').value = '';
   document.getElementById('task-title-input').focus();
 }
@@ -181,7 +182,11 @@ function closeNewTaskModal() {
 function createTask() {
   const title = document.getElementById('task-title-input').value.trim();
   const date = document.getElementById('task-date-input').value;
-  const time = document.getElementById('task-time-input').value;
+  let time = document.getElementById('task-time-input').value;
+  // Нормализуем: если пользователь ввёл только минуты (например "30"), добавим 00 часов.
+  if (time && !time.includes(':')) {
+    time = '00:' + String(time).padStart(2, '0');
+  }
   const timerMinutes = parseInt(document.getElementById('task-timer-input').value) || 0;
   if (!title) {
     document.getElementById('task-title-input').focus();
@@ -361,6 +366,16 @@ function startTimer() {
   }, 1000);
 }
 
+function startTimerForTask(task) {
+  if (!task || task.timer_minutes <= 0) return;
+  if (task._timerStarted) return; // prevent duplicate starts
+  // set currentTask and open modal for visibility
+  currentTask = task;
+  task._timerStarted = true;
+  openTaskDetailModal(task.id);
+  startTimer();
+}
+
 function stopTimer() {
   if (timerInterval) {
     clearInterval(timerInterval);
@@ -369,6 +384,9 @@ function stopTimer() {
   document.getElementById('timer-display').style.display = 'none';
   document.getElementById('start-timer-btn').style.display = 'none';
   document.getElementById('stop-timer-btn').style.display = 'none';
+  if (currentTask) {
+    currentTask._timerStarted = false;
+  }
 }
 
 function updateTimerDisplay() {
@@ -392,6 +410,25 @@ function timerFinished() {
   stopTimer();
   closeTaskDetailModal();
 }
+
+// Auto-start timers: check every 30 seconds whether any task time matches local time
+function checkAutoStartTimers() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const timeNow = hh + ':' + mm;
+  appData.tasks.forEach(task => {
+    if (!task) return;
+    // task.time is expected in 'HH:MM' format
+    if (task.time && task.time === timeNow && !task.completed && task.timer_minutes > 0 && !task._timerStarted) {
+      // start timer for this task
+      startTimerForTask(task);
+    }
+  });
+}
+
+// start periodic check
+setInterval(checkAutoStartTimers, 30000);
 
 document.getElementById('task-title-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') createTask(); });
 document.getElementById('new-task-modal').addEventListener('click', function(e) { if (e.target === this) closeNewTaskModal(); });

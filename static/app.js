@@ -7,6 +7,36 @@ let timerSecondsRemaining = 0;
 
 const API_BASE = '/api';
 
+// Supabase client (optional) - requires window.SUPABASE_URL and window.SUPABASE_ANON_KEY
+let supabaseClient = null;
+if ("https://bqaejvutckdthcgxzwje.supabase.co" && "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxYWVqdnV0Y2tkdGhjZ3h6d2plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMzcxODgsImV4cCI6MjA5NDgxMzE4OH0.ONTjrHXRnnvqnu6RC91MzY5bbnGuil6H1pI7YrDgX0Y" && window.supabase) {
+  try {
+    supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      const user = session?.user || null;
+      if (user) handleSignedIn(user);
+      else handleSignedOut();
+    });
+    (async () => {
+      try {
+        const { data } = await supabaseClient.auth.getSession();
+        if (data?.session?.user) handleSignedIn(data.session.user);
+      } catch (e) { console.warn('Supabase session check failed', e); }
+    })();
+  } catch (e) {
+    console.warn('Supabase init failed', e);
+    supabaseClient = null;
+  }
+}
+
+function getUserIdHeader() {
+  return localStorage.getItem('user_id') || 'local-user';
+}
+
+function apiHeaders(additional = {}) {
+  return Object.assign({ 'Content-Type': 'application/json', 'X-User-Id': getUserIdHeader() }, additional);
+}
+
 async function init() {
   await loadData();
   renderTasksTab();
@@ -33,7 +63,7 @@ async function saveTaskToDB(task) {
   try {
     await fetch(`${API_BASE}/tasks`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: apiHeaders(),
       body: JSON.stringify(task)
     });
   } catch (error) {
@@ -45,7 +75,7 @@ async function updateTaskInDB(taskId, task) {
   try {
     await fetch(`${API_BASE}/tasks/${taskId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: apiHeaders(),
       body: JSON.stringify(task)
     });
   } catch (error) {
@@ -55,9 +85,7 @@ async function updateTaskInDB(taskId, task) {
 
 async function deleteTaskFromDB(taskId) {
   try {
-    await fetch(`${API_BASE}/tasks/${taskId}`, {
-      method: 'DELETE'
-    });
+    await fetch(`${API_BASE}/tasks/${taskId}`, { method: 'DELETE', headers: apiHeaders() });
   } catch (error) {
     console.error('Error deleting task:', error);
   }
@@ -67,7 +95,7 @@ async function clearCompletedFromDB(today) {
   try {
     await fetch(`${API_BASE}/tasks/clear-completed`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: apiHeaders(),
       body: JSON.stringify({ today })
     });
   } catch (error) {
@@ -77,12 +105,62 @@ async function clearCompletedFromDB(today) {
 
 async function clearAllFromDB() {
   try {
-    await fetch(`${API_BASE}/tasks/clear-all`, {
-      method: 'POST'
-    });
+    await fetch(`${API_BASE}/tasks/clear-all`, { method: 'POST', headers: apiHeaders() });
   } catch (error) {
     console.error('Error clearing all tasks:', error);
   }
+}
+
+// --- Auth helpers (Supabase) ---
+function handleSignedIn(user) {
+  localStorage.setItem('user_id', user.id);
+  // If we stored pending profile data before OTP, upsert it
+  try {
+    const pending = JSON.parse(localStorage.getItem('pending_profile') || '{}');
+    if (supabaseClient && pending && (pending.first_name || pending.last_name || pending.phone)) {
+      supabaseClient.from('profiles').upsert([{ id: user.id, phone: pending.phone || user.phone, first_name: pending.first_name || '', last_name: pending.last_name || '' }], { onConflict: 'id' });
+      localStorage.removeItem('pending_profile');
+    }
+  } catch (e) { console.warn('Could not upsert profile', e); }
+  // refresh data with user header
+  loadData();
+  updateAuthUI(true);
+}
+
+function handleSignedOut() {
+  localStorage.removeItem('user_id');
+  updateAuthUI(false);
+}
+
+function updateAuthUI(signedIn) {
+  const status = document.getElementById('auth-status');
+  if (status) {
+    if (signedIn) status.textContent = 'Выполнен вход'; else status.textContent = 'Не авторизован';
+  }
+}
+
+async function startPhoneSignIn() {
+  if (!supabaseClient) { alert('Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_ANON_KEY в index.html'); return; }
+  const phone = document.getElementById('auth-phone').value.trim();
+  const first = document.getElementById('auth-first').value.trim();
+  const last = document.getElementById('auth-last').value.trim();
+  if (!phone) { alert('Введите номер телефона в международном формате'); return; }
+  // Save pending profile to upsert after sign-in
+  localStorage.setItem('pending_profile', JSON.stringify({ phone, first_name: first, last_name: last }));
+  try {
+    const { error } = await supabaseClient.auth.signInWithOtp({ phone });
+    if (error) throw error;
+    alert('Код отправлен. Подтвердите вход по SMS, после чего вы будете авторизованы.');
+    closeAuthModal();
+  } catch (e) {
+    console.error('Sign in error', e);
+    alert('Не удалось отправить код: ' + e.message);
+  }
+}
+
+async function signOut() {
+  if (supabaseClient) await supabaseClient.auth.signOut();
+  handleSignedOut();
 }
 
 function generateUUID() {

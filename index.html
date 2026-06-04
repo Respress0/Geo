@@ -6,6 +6,12 @@
   <title>Мой Таск-Менеджер</title>
   <link rel="manifest" href="/static/manifest.json">
   <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    // Replace these with your Supabase project values (set before deploy)
+    window.SUPABASE_URL = 'https://your-project.supabase.co';
+    window.SUPABASE_ANON_KEY = 'public-anon-key';
+  </script>
 </head>
 <body>
   <div class="container">
@@ -40,6 +46,41 @@
     </div>
   </div>
 
+  <!-- Auth modal -->
+  <div class="slide-panel-overlay" id="auth-modal" style="display:none;">
+    <div class="slide-panel">
+      <div class="slide-panel-header">
+        <h2>Вход / Регистрация по телефону</h2>
+        <button class="close-panel-btn" onclick="closeAuthModal()">✕</button>
+      </div>
+      <div class="slide-panel-content">
+        <div class="form-group">
+          <label for="auth-phone">Номер телефона</label>
+          <input type="tel" id="auth-phone" placeholder="+79001234567">
+        </div>
+        <div class="form-group">
+          <label for="auth-first">Имя</label>
+          <input type="text" id="auth-first" placeholder="Иван">
+        </div>
+        <div class="form-group">
+          <label for="auth-last">Фамилия</label>
+          <input type="text" id="auth-last" placeholder="Иванов">
+        </div>
+        <div class="modal-buttons">
+          <button class="btn btn-secondary" onclick="closeAuthModal()">Отмена</button>
+          <button class="btn" onclick="startPhoneSignIn()">Отправить код</button>
+        </div>
+        <p style="margin-top:12px; opacity:0.8; font-size:14px;">После подтверждения вы будете автоматически авторизованы. Приложение создаст профиль с именем и фамилией.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Small auth status / controls in settings -->
+  <script>
+    function openAuthModal() { document.getElementById('auth-modal').style.display = 'block'; }
+    function closeAuthModal() { document.getElementById('auth-modal').style.display = 'none'; }
+  </script>
+
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('tasks')">📋 Задачи</button>
     <button class="tab-btn" onclick="switchTab('calendar')">📅 Календарь</button>
@@ -65,6 +106,7 @@
         <div class="form-group">
           <label for="task-time-input">Время выполнения</label>
           <input type="time" id="task-time-input">
+          <div class="input-hint">Часы автоматически устанавливаются в <strong>00</strong></div>
         </div>
         <div class="form-group">
           <label for="task-timer-input">Таймер (минуты)</label>

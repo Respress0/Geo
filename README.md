@@ -120,3 +120,39 @@ with psycopg2.connect(DATABASE_URL) as pg:
 - ✅ Отображение просроченных задач
 - ✅ Локальная PostgreSQL база данных
 - ✅ Возможна синхронизация при развертывании на общем сервере
+
+## Supabase (cloud) — быстрая настройка аутентификации по телефону
+
+Если вы выбираете облачный Supabase, приложение поддерживает вход по номеру телефона и хранение профиля пользователя.
+
+1. В проекте Supabase создайте таблицу `profiles` (SQL):
+
+```sql
+create table if not exists profiles (
+    id uuid primary key,
+    phone text,
+    first_name text,
+    last_name text,
+    updated_at timestamptz default now()
+);
+
+-- Включаем RLS и политики, разрешающие владельцу читать/обновлять свой профиль
+alter table profiles enable row level security;
+
+create policy "Profiles: allow authenticated read/insert/update for self"
+    on profiles for all
+    using ( auth.role() = 'authenticated' and id = auth.uid() )
+    with check ( auth.role() = 'authenticated' and id = auth.uid() );
+```
+
+2. В `index.html` замените `window.SUPABASE_URL` и `window.SUPABASE_ANON_KEY` на значения вашего проекта Supabase (анон-ключ). Это нужно для работы фронтенд-авторизации.
+
+3. Как это работает в приложении:
+- Форма авторизации по телефону находится в интерфейсе (настройки). Пользователь вводит номер, имя и фамилию.
+- Приложение вызовет `signInWithOtp` (Supabase). После подтверждения по SMS браузер получит сессию, и приложение создаст/обновит запись в `profiles` с `id = auth.user.id`.
+- Клиент добавляет в заголовки запросов к локальному API `X-User-Id` с `user.id` (если пользователь авторизован). Бэкенд использует этот заголовок для scoping задач по пользователю.
+
+4. RLS и безопасность
+- В production рекомендуется настроить политики RLS более строго и не хранить анонимные ключи в публичном коде. Используйте среду сборки (env vars) и серверные прокси для защиты.
+
+Если нужно, могу добавить примерную миграцию для переноса существующих задач в Supabase или изменить бэкенд, чтобы валидировать Supabase JWT на стороне сервера.
